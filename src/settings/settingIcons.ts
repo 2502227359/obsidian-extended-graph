@@ -1,5 +1,5 @@
 import { Setting } from "obsidian";
-import { ExtendedGraphSettingTab, ExtendedGraphInstances, SettingsSectionPerGraphType, t } from "../internal";
+import { ExtendedGraphSettingTab, ExtendedGraphInstances, SettingsSectionPerGraphType, setupNumberInput, t } from "../internal";
 import { SettingMultiPropertiesModal } from "../ui/modals/settingPropertiesModal";
 
 export class SettingIcons extends SettingsSectionPerGraphType {
@@ -91,13 +91,16 @@ export class SettingIcons extends SettingsSectionPerGraphType {
                 .addText(cb => {
                     cb.inputEl.addClass("number");
                     cb.setValue(ExtendedGraphInstances.settings.backgroundOpacityWithIcon.toString());
-                    cb.onChange(async (value) => {
-                        const floatValue = value === "" ? 0 : parseFloat(value);
-                        if (!isNaN(floatValue)) {
-                            ExtendedGraphInstances.settings.backgroundOpacityWithIcon = Math.clamp(floatValue, 0, 1);
+                    setupNumberInput(cb, {
+                        min: 0,
+                        max: 1,
+                        fallback: 0,
+                        get: () => ExtendedGraphInstances.settings.backgroundOpacityWithIcon,
+                        set: async (n) => {
+                            ExtendedGraphInstances.settings.backgroundOpacityWithIcon = n;
                             await ExtendedGraphInstances.plugin.saveSettings();
                         }
-                    })
+                    });
                 }).settingEl
         );
         this.elementsBody.push(
@@ -122,13 +125,15 @@ export class SettingIcons extends SettingsSectionPerGraphType {
                 .addText(cb => {
                     cb.inputEl.addClass("number");
                     cb.setValue(ExtendedGraphInstances.settings.borderWidthWithIcon.toString());
-                    cb.onChange(async (value) => {
-                        const floatValue = value === "" ? 0 : parseFloat(value);
-                        if (!isNaN(floatValue)) {
-                            ExtendedGraphInstances.settings.borderWidthWithIcon = Math.max(floatValue, 0);
+                    setupNumberInput(cb, {
+                        min: 0,
+                        fallback: 0,
+                        get: () => ExtendedGraphInstances.settings.borderWidthWithIcon,
+                        set: async (n) => {
+                            ExtendedGraphInstances.settings.borderWidthWithIcon = n;
                             await ExtendedGraphInstances.plugin.saveSettings();
                         }
-                    })
+                    });
                 }).settingEl
         );
     }

@@ -82,7 +82,8 @@
     "errors": {
         "uri401": "获取节点图像时遇到 URL 未授权错误（代码401）：这可能意味着URL无效。图像将不会加载，可以安全忽略此消息。",
         "issueNeedView": "插件 $t(plugin.name) 出现问题。请关闭关系图谱后重新打开。",
-        "paletteNameRequired": "需要为此颜色映射选择名称"
+        "paletteNameRequired": "需要为此颜色映射选择名称",
+        "invalidRegex": "无效的正则表达式或 flags"
     },
     "features": {
         "ids": {

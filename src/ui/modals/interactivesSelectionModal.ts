@@ -6,6 +6,7 @@ export class InteractivesSelectionModal extends Modal {
     types: string[];
     labels: Record<string, HTMLLabelElement> = {};
     regexSetting: Setting;
+    hasInvalidRegex: boolean = false;
 
     constructor(key: string, types: string[]) {
         super(ExtendedGraphInstances.app);
@@ -57,10 +58,20 @@ export class InteractivesSelectionModal extends Modal {
     private filterOutLabels() {
         const excludeRegex = ExtendedGraphInstances.settings.interactiveSettings[this.key].excludeRegex;
         let nHidden = 0;
+        let hasInvalidRegex = false;
         for (const [type, label] of Object.entries(this.labels)) {
             let isHidden = false;
             for (const reg of excludeRegex.regex.split("\n")) {
-                if (reg !== "" && new RegExp(reg, excludeRegex.flags).test(type)) {
+                if (reg === "") continue;
+                let matches = false;
+                try {
+                    matches = new RegExp(reg, excludeRegex.flags).test(type);
+                }
+                catch {
+                    hasInvalidRegex = true;
+                    continue;
+                }
+                if (matches) {
                     label.hide();
                     isHidden = true;
                     nHidden++;
@@ -71,6 +82,7 @@ export class InteractivesSelectionModal extends Modal {
                 label.show();
             }
         }
+        this.hasInvalidRegex = hasInvalidRegex;
         this.regexSetting.setName(`${t("query.excludeRegex")} (${nHidden} ${nHidden > 1 ? t("query.matches") : t("query.match")})`);
     }
 
@@ -90,6 +102,9 @@ export class InteractivesSelectionModal extends Modal {
         const regex = ExtendedGraphInstances.settings.interactiveSettings[this.key].excludeRegex.regex;
         const flags = ExtendedGraphInstances.settings.interactiveSettings[this.key].excludeRegex.flags;
         this.regexSetting.descEl.empty();
+        if (this.hasInvalidRegex) {
+            this.regexSetting.descEl.createDiv({ text: t("errors.invalidRegex"), cls: "error" });
+        }
         this.regexSetting.descEl.createSpan({ text: t("query.excludeRegexDesc") });
         const list = this.regexSetting.descEl.createEl("ul");
         for (const r of regex.split("\n")) {

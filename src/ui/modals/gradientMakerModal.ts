@@ -200,7 +200,7 @@ export class GradientMakerModal extends Modal {
         }
         else {
             this.nameSetting.setDesc("");
-            this.nameSetting.descEl.toggleClass("error", true);
+            this.nameSetting.descEl.toggleClass("error", false);
         }
         if (this.name in ExtendedGraphInstances.settings.customColorMaps) {
             this.saveButton.setButtonText(t("controls.override"));

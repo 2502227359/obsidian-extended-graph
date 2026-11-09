@@ -1040,6 +1040,10 @@ body {
         }
     }
 
+    .setting-item-description .error {
+        color: var(--color-red);
+    }
+
     .items-container {
         display: flex;
         gap: var(--size-4-2);

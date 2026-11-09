@@ -1,5 +1,5 @@
 import { Setting } from "obsidian";
-import { CSSSnippetsSuggester, ExtendedGraphSettingTab, ExtendedGraphInstances, SettingsSection, t } from "../internal";
+import { CSSSnippetsSuggester, ExtendedGraphSettingTab, ExtendedGraphInstances, SettingsSection, setupNumberInput, t } from "../internal";
 
 export class SettingPerformance extends SettingsSection {
 
@@ -20,14 +20,15 @@ export class SettingPerformance extends SettingsSection {
             .setDesc(t("features.performanceDelayDesc"))
             .addText(cb => {
                 cb.inputEl.addClass("number");
-                cb.setValue(ExtendedGraphInstances.settings.delay.toString())
-                    .onChange(async (value) => {
-                        const intValue = parseInt(value);
-                        if (!isNaN(intValue)) {
-                            ExtendedGraphInstances.settings.delay = intValue;
-                            await ExtendedGraphInstances.plugin.saveSettings();
-                        }
-                    })
+                cb.setValue(ExtendedGraphInstances.settings.delay.toString());
+                setupNumberInput(cb, {
+                    min: 0,
+                    get: () => ExtendedGraphInstances.settings.delay,
+                    set: async (n) => {
+                        ExtendedGraphInstances.settings.delay = Math.round(n);
+                        await ExtendedGraphInstances.plugin.saveSettings();
+                    }
+                });
             });
 
         this.elementsBody.push(setting.settingEl);
@@ -39,14 +40,15 @@ export class SettingPerformance extends SettingsSection {
             .setDesc(t("features.performanceMaxNodesDesc"))
             .addText(cb => {
                 cb.inputEl.addClass("number");
-                cb.setValue(ExtendedGraphInstances.settings.maxNodes.toString())
-                    .onChange(async (value) => {
-                        const intValue = parseInt(value);
-                        if (!isNaN(intValue)) {
-                            ExtendedGraphInstances.settings.maxNodes = intValue;
-                            await ExtendedGraphInstances.plugin.saveSettings();
-                        }
-                    })
+                cb.setValue(ExtendedGraphInstances.settings.maxNodes.toString());
+                setupNumberInput(cb, {
+                    min: 1,
+                    get: () => ExtendedGraphInstances.settings.maxNodes,
+                    set: async (n) => {
+                        ExtendedGraphInstances.settings.maxNodes = Math.round(n);
+                        await ExtendedGraphInstances.plugin.saveSettings();
+                    }
+                });
             });
 
         this.elementsBody.push(setting.settingEl);

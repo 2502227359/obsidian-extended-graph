@@ -82,7 +82,8 @@
     "errors": {
         "uri401": "Unauthorized URL (Code 401) while trying to get an image for a node. This probably means that the URL is invalid. No image will be loaded and this message can safely be ignored.",
         "issueNeedView": "There was an issue with the plugin $t(plugin.name). Please close the graph view and open it again.",
-        "paletteNameRequired": "You need to choose a name for this color map"
+        "paletteNameRequired": "You need to choose a name for this color map",
+        "invalidRegex": "Invalid regular expression or flags"
     },
     "features": {
         "ids": {

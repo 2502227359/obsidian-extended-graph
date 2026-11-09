@@ -1,5 +1,5 @@
 import { ExtraButtonComponent, Setting } from "obsidian";
-import { ExtendedGraphSettingTab, getCMapData, NodeShape, ExtendedGraphInstances, SettingColorPalette, SettingsSection, ShapeEnum, t } from "../internal";
+import { ExtendedGraphSettingTab, getCMapData, NodeShape, ExtendedGraphInstances, SettingColorPalette, SettingsSection, ShapeEnum, setupNumberInput, t } from "../internal";
 
 export class SettingLocal extends SettingsSection {
     depthColormapSetting: SettingColorPalette;
@@ -74,13 +74,14 @@ export class SettingLocal extends SettingsSection {
             .addText(cb => {
                 cb.inputEl.addClass("number");
                 cb.setValue(ExtendedGraphInstances.settings.currentNode.size.toString());
-                cb.onChange(async (value) => {
-                    const intValue = parseInt(value);
-                    if (!isNaN(intValue)) {
-                        ExtendedGraphInstances.settings.currentNode.size = Math.max(10, intValue);
+                setupNumberInput(cb, {
+                    min: 10,
+                    get: () => ExtendedGraphInstances.settings.currentNode.size,
+                    set: async (n) => {
+                        ExtendedGraphInstances.settings.currentNode.size = Math.round(n);
                         await ExtendedGraphInstances.plugin.saveSettings();
                     }
-                })
+                });
             }).settingEl);
     }
 

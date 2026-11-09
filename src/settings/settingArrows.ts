@@ -1,5 +1,5 @@
 import { Setting } from "obsidian";
-import { ExtendedGraphSettingTab, ExtendedGraphInstances, SettingsSectionPerGraphType, t } from "../internal";
+import { ExtendedGraphSettingTab, ExtendedGraphInstances, SettingsSectionPerGraphType, setupNumberInput, t } from "../internal";
 
 export class SettingArrows extends SettingsSectionPerGraphType {
     constructor(settingTab: ExtendedGraphSettingTab) {
@@ -68,18 +68,16 @@ export class SettingArrows extends SettingsSectionPerGraphType {
             .setDesc(t("features.arrowsScaleDesc"))
             .addText(cb => {
                 cb.inputEl.addClass("number");
-                cb.setValue(ExtendedGraphInstances.settings.arrowScale.toString())
-                    .onChange(async (value) => {
-                        if (value === '') {
-                            ExtendedGraphInstances.settings.arrowScale = 1;
-                            await ExtendedGraphInstances.plugin.saveSettings();
-                        }
-                        const floatValue = parseFloat(value);
-                        if (!isNaN(floatValue)) {
-                            ExtendedGraphInstances.settings.arrowScale = Math.max(0.1, floatValue);
-                            await ExtendedGraphInstances.plugin.saveSettings();
-                        }
-                    });
+                cb.setValue(ExtendedGraphInstances.settings.arrowScale.toString());
+                setupNumberInput(cb, {
+                    min: 0.1,
+                    fallback: 1,
+                    get: () => ExtendedGraphInstances.settings.arrowScale,
+                    set: async (n) => {
+                        ExtendedGraphInstances.settings.arrowScale = n;
+                        await ExtendedGraphInstances.plugin.saveSettings();
+                    }
+                });
             }).settingEl);
 
 

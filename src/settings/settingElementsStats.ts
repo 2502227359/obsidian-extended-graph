@@ -13,6 +13,7 @@ import {
     ExtendedGraphInstances,
     SettingColorPalette,
     SettingsSectionPerGraphType,
+    setupNumberInput,
     t,
     GraphStatsDirection
 } from "../internal";
@@ -127,10 +128,13 @@ export class SettingElementsStats extends SettingsSectionPerGraphType {
             .addText(cb => {
                 cb.inputEl.addClass("number");
                 cb.setValue(ExtendedGraphInstances.settings.nodesSizeRange.min.toString());
-                cb.onChange(async (value) => {
-                    const floatValue = parseFloat(value);
-                    if (!isNaN(floatValue)) {
-                        ExtendedGraphInstances.settings.nodesSizeRange.min = Math.clamp(floatValue, 0.1, 5);
+                setupNumberInput(cb, {
+                    min: 0.1,
+                    max: 5,
+                    get: () => ExtendedGraphInstances.settings.nodesSizeRange.min,
+                    set: async (n) => {
+                        // Cross-check: min cannot exceed max
+                        ExtendedGraphInstances.settings.nodesSizeRange.min = Math.min(n, ExtendedGraphInstances.settings.nodesSizeRange.max);
                         await ExtendedGraphInstances.plugin.saveSettings();
                     }
                 });
@@ -138,10 +142,13 @@ export class SettingElementsStats extends SettingsSectionPerGraphType {
             .addText(cb => {
                 cb.inputEl.addClass("number");
                 cb.setValue(ExtendedGraphInstances.settings.nodesSizeRange.max.toString());
-                cb.onChange(async (value) => {
-                    const floatValue = parseFloat(value);
-                    if (!isNaN(floatValue)) {
-                        ExtendedGraphInstances.settings.nodesSizeRange.max = Math.clamp(floatValue, 0.1, 5);
+                setupNumberInput(cb, {
+                    min: 0.1,
+                    max: 5,
+                    get: () => ExtendedGraphInstances.settings.nodesSizeRange.max,
+                    set: async (n) => {
+                        // Cross-check: max cannot go below min
+                        ExtendedGraphInstances.settings.nodesSizeRange.max = Math.max(n, ExtendedGraphInstances.settings.nodesSizeRange.min);
                         await ExtendedGraphInstances.plugin.saveSettings();
                     }
                 });

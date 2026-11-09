@@ -82,7 +82,8 @@
     "errors": {
         "uri401": "URL non autorisée (Code 401) lors de la tentative d'obtention d'une image pour un nœud. Cela signifie probablement que l'URL est invalide. Aucune image ne sera chargée et ce message peut être ignoré en toute sécurité.",
         "issueNeedView": "Il y a eu un problème avec le module $t(plugin.name). Veuillez fermer la vue graphique et l'ouvrir à nouveau.",
-        "paletteNameRequired": "Vous devez choisir un nom pour cette palette de couleurs"
+        "paletteNameRequired": "Vous devez choisir un nom pour cette palette de couleurs",
+        "invalidRegex": "Expression régulière ou indicateurs invalides"
     },
     "features": {
         "ids": {

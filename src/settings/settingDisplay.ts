@@ -1,5 +1,5 @@
 import { Setting } from "obsidian";
-import { ExtendedGraphSettingTab, FeatureSetting, ExtendedGraphInstances, SettingsSection, t } from "../internal";
+import { ExtendedGraphSettingTab, FeatureSetting, ExtendedGraphInstances, SettingsSection, setupNumberInput, t } from "../internal";
 
 export class SettingDisplay extends SettingsSection {
 
@@ -99,33 +99,29 @@ export class SettingDisplay extends SettingsSection {
                 cb.inputEl.addClass("number");
                 cb.inputEl.insertAdjacentText('beforebegin', t("plugin.light"));
                 cb.setValue(ExtendedGraphInstances.settings.interactivesBrightness.light.toString());
-                cb.onChange(value => {
-                    if (value === '') {
-                        ExtendedGraphInstances.settings.interactivesBrightness.light = 1;
-                        ExtendedGraphInstances.plugin.saveSettings();
+                setupNumberInput(cb, {
+                    min: 0,
+                    fallback: 1,
+                    get: () => ExtendedGraphInstances.settings.interactivesBrightness.light,
+                    set: async (n) => {
+                        ExtendedGraphInstances.settings.interactivesBrightness.light = n;
+                        await ExtendedGraphInstances.plugin.saveSettings();
                     }
-                    const floatValue = parseFloat(value);
-                    if (!isNaN(floatValue)) {
-                        ExtendedGraphInstances.settings.interactivesBrightness.light = Math.max(floatValue, 0);
-                        ExtendedGraphInstances.plugin.saveSettings();
-                    }
-                })
+                });
             })
             .addText(cb => {
                 cb.inputEl.addClass("number");
                 cb.inputEl.insertAdjacentText('beforebegin', t("plugin.dark"));
                 cb.setValue(ExtendedGraphInstances.settings.interactivesBrightness.dark.toString());
-                cb.onChange(value => {
-                    if (value === '') {
-                        ExtendedGraphInstances.settings.interactivesBrightness.dark = 1;
-                        ExtendedGraphInstances.plugin.saveSettings();
+                setupNumberInput(cb, {
+                    min: 0,
+                    fallback: 1,
+                    get: () => ExtendedGraphInstances.settings.interactivesBrightness.dark,
+                    set: async (n) => {
+                        ExtendedGraphInstances.settings.interactivesBrightness.dark = n;
+                        await ExtendedGraphInstances.plugin.saveSettings();
                     }
-                    const floatValue = parseFloat(value);
-                    if (!isNaN(floatValue)) {
-                        ExtendedGraphInstances.settings.interactivesBrightness.dark = Math.max(floatValue, 0);
-                        ExtendedGraphInstances.plugin.saveSettings();
-                    }
-                })
+                });
             })
             .settingEl);
     }

@@ -1,5 +1,5 @@
 import { ButtonComponent, Notice, setIcon, Setting, TFile, TextComponent } from "obsidian";
-import { ExtendedGraphSettingTab, LayersManager, ExtendedGraphInstances, SettingsSectionPerGraphType, SettingMultiPropertiesModal, ConfirmModal, t, UIElements, Layer, getDataviewPlugin } from "../internal";
+import { ExtendedGraphSettingTab, LayersManager, ExtendedGraphInstances, SettingsSectionPerGraphType, SettingMultiPropertiesModal, ConfirmModal, setupNumberInput, t, UIElements, Layer, getDataviewPlugin } from "../internal";
 
 export class SettingLayers extends SettingsSectionPerGraphType {
     layerInfoSettings: LayerSetting[] = [];
@@ -45,14 +45,15 @@ export class SettingLayers extends SettingsSectionPerGraphType {
             .setDesc(t("features.layersNumberDesc"))
             .addText(cb => {
                 cb.inputEl.addClass("number");
-                cb.setValue(ExtendedGraphInstances.settings.numberOfActiveLayers.toString())
-                    .onChange(async (value) => {
-                        const intValue = parseInt(value);
-                        if (!isNaN(intValue) && intValue > 0) {
-                            ExtendedGraphInstances.settings.numberOfActiveLayers = intValue;
-                            await ExtendedGraphInstances.plugin.saveSettings();
-                        }
-                    })
+                cb.setValue(ExtendedGraphInstances.settings.numberOfActiveLayers.toString());
+                setupNumberInput(cb, {
+                    min: 1,
+                    get: () => ExtendedGraphInstances.settings.numberOfActiveLayers,
+                    set: async (n) => {
+                        ExtendedGraphInstances.settings.numberOfActiveLayers = Math.round(n);
+                        await ExtendedGraphInstances.plugin.saveSettings();
+                    }
+                });
             }).settingEl);
     }
 
@@ -80,14 +81,16 @@ export class SettingLayers extends SettingsSectionPerGraphType {
             .setDesc(t("features.layersOpacityIfNoLayerDesc"))
             .addText(cb => {
                 cb.inputEl.addClass("number");
-                cb.setValue(ExtendedGraphInstances.settings.nodesWithoutLayerOpacity.toString())
-                    .onChange(async (value) => {
-                        const floatValue = parseFloat(value);
-                        if (!isNaN(floatValue)) {
-                            ExtendedGraphInstances.settings.nodesWithoutLayerOpacity = Math.clamp(floatValue, 0, 1);
-                            await ExtendedGraphInstances.plugin.saveSettings();
-                        }
-                    })
+                cb.setValue(ExtendedGraphInstances.settings.nodesWithoutLayerOpacity.toString());
+                setupNumberInput(cb, {
+                    min: 0,
+                    max: 1,
+                    get: () => ExtendedGraphInstances.settings.nodesWithoutLayerOpacity,
+                    set: async (n) => {
+                        ExtendedGraphInstances.settings.nodesWithoutLayerOpacity = n;
+                        await ExtendedGraphInstances.plugin.saveSettings();
+                    }
+                });
             }).settingEl);
     }
 
@@ -350,7 +353,7 @@ class LayerSetting extends Setting {
             cb.onChange(async (value) => {
                 const floatValue = parseFloat(value);
                 if (!isNaN(floatValue)) {
-                    ExtendedGraphInstances.settings.layersCustomOpacity[this.layer.level] = Math.clamp(floatValue, 0, 1);;
+                    ExtendedGraphInstances.settings.layersCustomOpacity[this.layer.level] = Math.clamp(floatValue, 0, 1);
                     await ExtendedGraphInstances.plugin.saveSettings();
                 }
                 else {
