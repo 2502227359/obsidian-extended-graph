@@ -35,6 +35,17 @@ export function quadratic(t: number, p0: Point, p1: Point, p2: Point): Point {
     return { x: x, y: y };
 }
 
+/** Same as quadratic() but writes the result into `out` — for per-frame hot paths. */
+export function quadraticInto(t: number, p0: Point, p1: Point, p2: Point, out: Point): Point {
+    const c1x = (1 - t) * ((1 - t) * p0.x + t * p1.x);
+    const c1y = (1 - t) * ((1 - t) * p0.y + t * p1.y);
+    const c2x = t * ((1 - t) * p1.x + t * p2.x);
+    const c2y = t * ((1 - t) * p1.y + t * p2.y);
+    out.x = c1x + c2x;
+    out.y = c1y + c2y;
+    return out;
+}
+
 // https://math.stackexchange.com/questions/2149009/find-a-tangent-to-two-quadratic-bezier-curves
 export function tangentQuadratic(t: number, p0: Point, p1: Point, p2: Point): { m: number, c: number } {
     // The tangent line at point x=t passes through the points A = [(1 - t) * p0 + t * p1] and B = [(1 - t) * p1 + t * p2]

@@ -1,6 +1,6 @@
 import { Component, Notice } from "obsidian";
-import { GraphColorAttributes, GraphData, GraphLink } from "obsidian-typings";
-import { Container, DisplayObject, Text } from "pixi.js";
+import { GraphColorAttributes, GraphData, GraphLink, GraphNode } from "obsidian-typings";
+import { Container, DisplayObject } from "pixi.js";
 import {
     ExtendedGraphSettings,
     FOLDER_KEY,
@@ -314,6 +314,7 @@ export class GraphEventsDispatcher extends Component {
 
     private createSetDataProxy() {
         const updateData = this.updateData.bind(this);
+        const invalidateStageLookups = this.invalidateStageLookups.bind(this);
         const instances = this.instances;
 
         // The plugin Nested Tags Graph replaces the method setData of the renderer
@@ -333,6 +334,9 @@ export class GraphEventsDispatcher extends Component {
                     if (data) {
                         args[0] = data;
                         const res = Reflect.apply(target, thisArg, args);
+
+                        // renderer.nodes/links were rebuilt by the core: drop the stage lookups
+                        invalidateStageLookups();
 
                         // Recompute the graphology
                         instances.graphologyGraph?.buildGraphology();
@@ -560,6 +564,7 @@ export class GraphEventsDispatcher extends Component {
     private unbindStageEvents(): void {
         this.instances.renderer.hanger.off('childAdded', this.onChildAddedToStage);
         this.instances.renderer.hanger.off('childRemoved', this.onChildRemovedFromStage);
+        this.invalidateStageLookups();
     }
 
     private restoreArrowAlpha(): void {
@@ -590,12 +595,48 @@ export class GraphEventsDispatcher extends Component {
     // ============================= STAGE EVENTS ==============================
 
     /**
+     * DisplayObject → core element lookups for the childAdded/childRemoved handlers.
+     * Built lazily from renderer.nodes/links (which are immutable between setData calls)
+     * instead of running a linear find() per added child, which made the
+     * initGraphics burst O(N²) on large graphs.
+     */
+    private nodeByDisplayObject?: Map<DisplayObject, GraphNode>;
+    private linkByDisplayObject?: Map<DisplayObject, GraphLink>;
+
+    private getNodeLookup(): Map<DisplayObject, GraphNode> {
+        if (!this.nodeByDisplayObject) {
+            this.nodeByDisplayObject = new Map();
+            for (const node of this.instances.renderer.nodes) {
+                if (node.circle) this.nodeByDisplayObject.set(node.circle, node);
+                if (node.text) this.nodeByDisplayObject.set(node.text, node);
+            }
+        }
+        return this.nodeByDisplayObject;
+    }
+
+    private getLinkLookup(): Map<DisplayObject, GraphLink> {
+        if (!this.linkByDisplayObject) {
+            this.linkByDisplayObject = new Map();
+            for (const link of this.instances.renderer.links) {
+                if (link.px) this.linkByDisplayObject.set(link.px, link);
+                if (link.arrow) this.linkByDisplayObject.set(link.arrow, link);
+            }
+        }
+        return this.linkByDisplayObject;
+    }
+
+    private invalidateStageLookups(): void {
+        this.nodeByDisplayObject = undefined;
+        this.linkByDisplayObject = undefined;
+    }
+
+    /**
      * Called when a child is added to the stage by the engine.
      */
     private onChildAddedToStage(child: DisplayObject, container: Container, index: number): void {
         if (!this.listenStage) return;
 
-        const node = this.instances.renderer.nodes.find(n => n.circle === child);
+        const node = this.getNodeLookup().get(child);
         if (node) {
             if (ExtendedGraphInstances.graphsManager.lifecycleManager.isNodeLimitExceededForView(this.instances.view)) {
                 this.listenStage = false;
@@ -626,7 +667,7 @@ export class GraphEventsDispatcher extends Component {
             }
         }
 
-        const link = this.instances.renderer.links.find(l => l.px === child || l.arrow === child);
+        const link = this.getLinkLookup().get(child);
         if (link) {
             const add = (l: GraphLink) => {
                 const extendedLink = this.instances.linksSet.extendedElementsMap.get(getLinkID(l));
@@ -657,7 +698,7 @@ export class GraphEventsDispatcher extends Component {
         }
 
         if ("text" in child) {
-            const node = this.instances.renderer.nodes.find(n => n.text === child as Text);
+            const node = this.getNodeLookup().get(child);
             if (node) {
                 const extendedNode = this.instances.nodesSet.extendedElementsMap.get(node.id);
                 if (extendedNode) {

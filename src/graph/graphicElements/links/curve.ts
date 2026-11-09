@@ -1,6 +1,6 @@
 import { IDestroyOptions, Graphics } from "pixi.js";
 import * as Color from '../../../colors/color-bits';
-import { ExtendedGraphLink, InteractiveManager, lengthQuadratic, LinkArrow, ManagerGraphics, pixiAddChild, pixiColor2int, quadratic } from "../../../internal";
+import { ExtendedGraphLink, InteractiveManager, lengthQuadratic, LinkArrow, ManagerGraphics, pixiAddChild, pixiColor2int, quadratic, quadraticInto } from "../../../internal";
 
 
 export abstract class LinkCurveGraphics extends Graphics implements ManagerGraphics {
@@ -88,14 +88,14 @@ export abstract class LinkCurveGraphics extends Graphics implements ManagerGraph
         const dx = target.x - source.x;
         const dy = target.y - source.y;
 
-        this.bezier.P1 = { // Control point, shifted along the normal
-            x: (source.x + target.x) * 0.5 + dy * 0.2 * this.extendedLink.instances.settings.curvedFactor,
-            y: (source.y + target.y) * 0.5 - dx * 0.2 * this.extendedLink.instances.settings.curvedFactor
-        };
+        // Write into the existing bezier objects: this runs every frame while
+        // curved links are enabled, and per-frame allocations add GC pressure.
+        this.bezier.P1.x = (source.x + target.x) * 0.5 + dy * 0.2 * this.extendedLink.instances.settings.curvedFactor;
+        this.bezier.P1.y = (source.y + target.y) * 0.5 - dx * 0.2 * this.extendedLink.instances.settings.curvedFactor;
 
         const L = lengthQuadratic(1, source, this.bezier.P1, target); // length of the arc between centers
-        this.bezier.P0 = quadratic(0.9 * source.getSize() * f / L, source, this.bezier.P1, target); // point on the border of the source node, along the arc.
-        this.bezier.P2 = quadratic(1 - 0.9 * target.getSize() * f / L, source, this.bezier.P1, target); // point on the border of the target node, along the arc
+        quadraticInto(0.9 * source.getSize() * f / L, source, this.bezier.P1, target, this.bezier.P0); // point on the border of the source node, along the arc.
+        quadraticInto(1 - 0.9 * target.getSize() * f / L, source, this.bezier.P1, target, this.bezier.P2); // point on the border of the target node, along the arc
 
         return true;
     }

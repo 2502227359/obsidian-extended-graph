@@ -13,7 +13,7 @@ import {
     textStyleFill2int
 } from "../../../internal";
 import * as Color from "../../../colors/color-bits";
-import { BitmapFont, BitmapText, ColorSource, Container, Graphics, IBitmapTextStyle, Sprite, Text, TextMetrics, TextStyle, TextStyleFill, Texture } from "pixi.js";
+import { BitmapFont, BitmapText, ColorSource, Container, Filter, Graphics, IBitmapTextStyle, Sprite, Text, TextMetrics, TextStyle, TextStyleFill, Texture } from "pixi.js";
 
 export abstract class LinkText extends Container {
     extendedLink: ExtendedGraphLink;
@@ -350,17 +350,28 @@ export abstract class LinkText extends Container {
 
             if (this.style.textStyle.dropShadow && this.style.textStyle.dropShadow.blur > 0) {
                 const shadow = this.style.textStyle.dropShadow;
-                this.text.filters = [new DropShadowFilter({
+                this.replaceTextFilters([new DropShadowFilter({
                     alpha: shadow.alpha,
                     blur: shadow.blur,
                     color: shadow.color,
                     offset: { x: 0, y: 0 }
-                })]
+                })]);
             }
             else {
-                this.text.filters = [];
+                this.replaceTextFilters([]);
             }
         }
+    }
+
+    /**
+     * applyCSSChanges runs on every CSS/theme change: destroy the filters being
+     * replaced, otherwise each pass leaks the previous DropShadowFilter's GPU resources.
+     */
+    private replaceTextFilters(filters: Filter[]): void {
+        for (const filter of this.text.filters ?? []) {
+            filter.destroy();
+        }
+        this.text.filters = filters;
     }
 
     // ============================= TEXT CONTENT ==============================
