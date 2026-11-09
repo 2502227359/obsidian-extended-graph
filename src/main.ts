@@ -127,6 +127,7 @@ export default class ExtendedGraphPlugin extends Plugin {
     // =============================== UNLOADING ===============================
 
     onunload() {
+        this.flushSaveSettings();
         ExtendedGraphInstances.proxysManager?.unregisterAll();
     }
 
@@ -381,8 +382,54 @@ export default class ExtendedGraphPlugin extends Plugin {
         }
     }
 
+    private saveSettingsTimer: number | undefined;
+    private saveSettingsWaiters: (() => void)[] = [];
+
+    /**
+     * Debounced persistence: bursts of changes (typing, rendering, toggles)
+     * coalesce into a single data.json write. Awaiters piggyback on the pending
+     * write, so `await saveSettings()` still resolves once the data is written.
+     */
     async saveSettings() {
-        await this.saveData(ExtendedGraphInstances.settings);
+        if (this.saveSettingsTimer === undefined) {
+            this.saveSettingsTimer = window.setTimeout(() => {
+                this.saveSettingsTimer = undefined;
+                this.writeSettingsNow();
+            }, 500);
+        }
+        return new Promise<void>(resolve => this.saveSettingsWaiters.push(resolve));
+    }
+
+    private writeSettingsNow() {
+        const waiters = this.saveSettingsWaiters;
+        this.saveSettingsWaiters = [];
+        this.saveData(ExtendedGraphInstances.settings)
+            .catch(error => console.error("Extended Graph: failed to save settings", error))
+            .then(() => waiters.forEach(resolve => resolve()));
+    }
+
+    /** Write immediately if a debounced save is still pending (e.g. on unload). */
+    private flushSaveSettings() {
+        if (this.saveSettingsTimer === undefined) return;
+        window.clearTimeout(this.saveSettingsTimer);
+        this.saveSettingsTimer = undefined;
+        this.writeSettingsNow();
+    }
+
+    /**
+     * Immediate (non-debounced) write for flows that must persist before
+     * continuing (state saves, config import/export). Also releases any
+     * waiters of a pending debounced save.
+     */
+    async saveSettingsNow(): Promise<void> {
+        if (this.saveSettingsTimer !== undefined) {
+            window.clearTimeout(this.saveSettingsTimer);
+            this.saveSettingsTimer = undefined;
+        }
+        return new Promise<void>(resolve => {
+            this.saveSettingsWaiters.push(resolve);
+            this.writeSettingsNow();
+        });
     }
 
     async loadConfigFile(filepath: string) {
@@ -418,9 +465,9 @@ export default class ExtendedGraphPlugin extends Plugin {
         // Delete the stateID value if it exists
         delete importedSettings["stateID"];
 
-        // Set and save the settings
+        // Set and save the settings (imported settings must be persisted right away)
         ExtendedGraphInstances.settings = importedSettings;
-        await this.saveSettings();
+        await this.saveSettingsNow();
 
         // Just in case the migration modified something
         this.exportSettings(filepath, ExtendedGraphInstances.settings);

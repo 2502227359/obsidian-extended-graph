@@ -35,7 +35,8 @@ export abstract class SettingsSection {
         this.addToNav();
 
         if (this.id != 'property-key' && (!(this.id in ExtendedGraphInstances.settings.collapsedSettings) || ExtendedGraphInstances.settings.collapsedSettings[this.id])) {
-            this.collapse();
+            // Initial render: apply the collapsed state without persisting
+            this.collapse(false);
         }
 
         this.elementsBody.forEach(el => {
@@ -92,11 +93,11 @@ export abstract class SettingsSection {
         div.appendText(this.keyword);
     }
 
-    protected collapse(): void {
+    protected collapse(save: boolean = true): void {
         this.isCollapsed = true;
         this.settingHeader.settingEl.addClass('is-collapsed');
         ExtendedGraphInstances.settings.collapsedSettings[this.id] = true;
-        ExtendedGraphInstances.plugin.saveSettings();
+        if (save) ExtendedGraphInstances.plugin.saveSettings();
         this.onCollapse();
     }
 

@@ -37,7 +37,6 @@ export abstract class SettingsSectionPerGraphType extends SettingsSection {
                 this.toggle(graphType, value);
             });
         this.toggles[graphType] = toggle;
-        this.toggle(graphType, enable);
     }
 
     private toggle(graphType: GraphType, enable: boolean) {

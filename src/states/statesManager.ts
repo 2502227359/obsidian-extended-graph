@@ -204,7 +204,9 @@ export class StatesManager {
 
     async onStateNeedsSaving(stateData: GraphStateData, notice: boolean = false): Promise<void> {
         this.updateStateArray(stateData);
-        await ExtendedGraphInstances.plugin.saveSettings().then(() => {
+        // Immediate write: enabling a graph waits on this save, and the saved
+        // state must be on disk before the plugin takes over the view.
+        await ExtendedGraphInstances.plugin.saveSettingsNow().then(() => {
             if (notice) new Notice(`${t("plugin.name")}: ${t("notices.stateSaved")} (${stateData.name})`);
             this.updateAllStates();
         });
@@ -254,7 +256,7 @@ export class StatesManager {
         const stateData = this.getStateDataById(id);
         if (!stateData || stateData.name === newName) return;
         stateData.name = newName;
-        ExtendedGraphInstances.plugin.saveSettings().then(() => {
+        ExtendedGraphInstances.plugin.saveSettingsNow().then(() => {
             new Notice(`${t("plugin.name")}: ${t("notices.stateRenamed")} (${newName})`);
             this.updateAllStates();
         });
@@ -271,7 +273,7 @@ export class StatesManager {
         const state = this.getStateDataById(id);
         if (!state) return;
         ExtendedGraphInstances.settings.states.remove(state);
-        ExtendedGraphInstances.plugin.saveSettings().then(() => {
+        ExtendedGraphInstances.plugin.saveSettingsNow().then(() => {
             new Notice(`${t("plugin.name")}: ${t("notices.stateDeleted")} (${state.name})`);
             this.updateAllStates();
         });
