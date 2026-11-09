@@ -4,6 +4,11 @@ import { ExtendedGraphInstances, GraphEventsDispatcher, GraphInstances, GraphTyp
 
 export class PluginLifecycleManager extends Component {
     isResetting: Map<string, boolean> = new Map();
+    private pendingEnables = new Map<string, symbol>();
+
+    override onunload(): void {
+        this.pendingEnables.clear();
+    }
 
 
     isPluginAlreadyEnabled(view: GraphView | LocalGraphView): boolean {
@@ -13,18 +18,24 @@ export class PluginLifecycleManager extends Component {
     // ============================= ENABLE PLUGIN =============================
 
     enablePlugin(view: GraphView | LocalGraphView, stateID?: string, reloadState: boolean = true): void {
+        if (this.isPluginAlreadyEnabled(view) || this.pendingEnables.has(view.leaf.id)) return;
         if (!this.isResetting.get(view.leaf.id)) {
             ExtendedGraphInstances.graphsManager.backupOptions(view);
         }
 
-        if (this.isPluginAlreadyEnabled(view)) return;
         if (this.isNodeLimitExceededForView(view)) return;
 
         const globalUI = ExtendedGraphInstances.graphsManager.graphLeavesManager.setGlobalUI(view);
         globalUI.menu.disableUI();
+        const request = Symbol();
+        this.pendingEnables.set(view.leaf.id, request);
 
         const actuallyEnablePlugin = async () => {
+            if (this.pendingEnables.get(view.leaf.id) !== request) return;
+            this.pendingEnables.delete(view.leaf.id);
+            if (!this._loaded || !view._loaded) return;
             const instances = await this.addGraph(view, stateID ?? ExtendedGraphInstances.settings.startingStateID, reloadState);
+            if (!instances.graphEventsDispatcher._loaded) return;
 
             ExtendedGraphInstances.graphsManager.vaultStatsManager.initializeCalculators(instances);
 
@@ -99,6 +110,7 @@ export class PluginLifecycleManager extends Component {
     }
 
     disablePluginFromLeafID(leafID: string) {
+        this.pendingEnables.delete(leafID);
         ExtendedGraphInstances.graphsManager.graphLeavesManager.disableUI(leafID);
         this.unloadDispatcher(leafID);
     }
@@ -106,7 +118,7 @@ export class PluginLifecycleManager extends Component {
     private unloadDispatcher(leafID: string) {
         const instances = ExtendedGraphInstances.graphsManager.allInstances.get(leafID);
         if (instances) {
-            instances.graphEventsDispatcher.unload();
+            instances.view.removeChild(instances.graphEventsDispatcher);
         }
         else {
             ExtendedGraphInstances.graphsManager.graphLeavesManager.enableUI(leafID);

@@ -80,6 +80,7 @@ export class Graph extends Component {
 
     onload(): void {
         this.initSets().then(() => {
+            if (!this._loaded) return;
             this.instances.graphEventsDispatcher.onGraphReady();
         }).catch(e => {
             console.error(e);
@@ -89,6 +90,7 @@ export class Graph extends Component {
     private async initSets(): Promise<void> {
         // Let time to the engine to apply user filters
         await this.delay(this.instances.settings.delay);
+        if (!this._loaded) return;
 
         this.instances.nodesSet.load();
         this.instances.linksSet.load();

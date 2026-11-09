@@ -78,6 +78,7 @@ export class StatesManager {
             instances.graphEventsDispatcher.lastFilteringAction.record = false;
 
         setTimeout(() => {
+            if (!instances.graphEventsDispatcher._loaded) return;
             this.updateInteractiveManagers(stateData, instances);
             if (stateData.engineOptions) {
                 instances.colorGroupHaveChanged = stateData.engineOptions.colorGroups !== instances.engine.options.colorGroups;

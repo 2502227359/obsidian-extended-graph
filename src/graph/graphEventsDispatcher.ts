@@ -544,7 +544,7 @@ export class GraphEventsDispatcher extends Component {
         ExtendedGraphInstances.proxysManager.unregisterProxy(this.instances.renderer.destroyGraphics);
         ExtendedGraphInstances.proxysManager.unregisterProxy(this.instances.renderer.initGraphics);
         this.instances.foldersUI?.destroy();
-        this.inputsManager.unload();
+        this.inputsManager?.unload();
         ExtendedGraphInstances.graphsManager.lifecycleManager.onPluginUnloaded(this.instances.view);
         this.restoreArrowAlpha();
         this.restoreLineHighlight();
@@ -576,7 +576,7 @@ export class GraphEventsDispatcher extends Component {
 
         const checkboxes = this.instances.view.contentEl.querySelectorAll('.graph-control-section.mod-filter .checkbox-container');
         for (const checkboxContainer of Array.from(checkboxes)) {
-            checkboxContainer.addEventListener('mousedown', this.updateLastCheckboxToggled);
+            checkboxContainer.removeEventListener('mousedown', this.updateLastCheckboxToggled);
         }
 
         ExtendedGraphInstances.proxysManager.unregisterProxy(this.instances.engine.options);
@@ -751,6 +751,7 @@ export class GraphEventsDispatcher extends Component {
 
     private afterInitGraphics() {
         setTimeout(() => {
+            if (!this._loaded) return;
             this.instances.cssBridge.load();
             for (const el of this.instances.linksSet.extendedElementsMap.values()) {
                 el.init();

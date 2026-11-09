@@ -16,6 +16,7 @@ export class GraphControlsUI extends Component {
         this.view = view;
         this.graphControls = view.contentEl.querySelector(".graph-controls") as HTMLElement;
         this.sectionSettings = new GCOptions(view);
+        this.addChild(this.sectionSettings);
     }
 
     onPluginEnabled(instances: GraphInstances): void {

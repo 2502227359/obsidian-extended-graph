@@ -127,6 +127,7 @@ export default class ExtendedGraphPlugin extends Plugin {
     // =============================== UNLOADING ===============================
 
     onunload() {
+        ExtendedGraphInstances.proxysManager?.unregisterAll();
     }
 
     // ================================ SETTINGS ===============================

@@ -9,6 +9,7 @@ export class MenuUI extends Component {
     buttonEnable: ExtraButtonComponent;
     buttonReset: ExtraButtonComponent;
     enabled: boolean;
+    separator: HTMLHRElement;
 
     constructor(view: GraphView | LocalGraphView) {
         super();
@@ -16,10 +17,17 @@ export class MenuUI extends Component {
         this.graphControlsEl = this.view.contentEl.querySelector(".graph-controls") as HTMLDivElement;
         this.graphControlsEl.addClass("graph-controls-extended-graph");
 
-        const hr = this.graphControlsEl.createEl("hr");
-        hr.addClass("separator-exended-graph");
+        this.separator = this.graphControlsEl.createEl("hr");
+        this.separator.addClass("separator-exended-graph");
         this.createEnableButton();
         this.createResetButton();
+    }
+
+    override onunload(): void {
+        this.buttonEnable.extraSettingsEl.remove();
+        this.buttonReset.extraSettingsEl.remove();
+        this.separator.remove();
+        this.graphControlsEl.removeClass("graph-controls-extended-graph");
     }
 
     createEnableButton() {

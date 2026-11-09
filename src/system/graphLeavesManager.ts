@@ -7,6 +7,15 @@ export class GraphLeavesManager extends Component {
     globalUIs: Map<string, { menu: MenuUI, control: GraphControlsUI }> = new Map();
     localGraphID: string | null = null;
 
+    override onunload(): void {
+        for (const { menu, control } of this.globalUIs.values()) {
+            menu.view.removeChild(menu);
+            control.view.removeChild(control);
+        }
+        this.globalUIs.clear();
+        this.localGraphID = null;
+    }
+
     // =============================== GLOBAL UI ===============================
 
     setGlobalUI(view: GraphView | LocalGraphView): { menu: MenuUI, control: GraphControlsUI } {

@@ -96,6 +96,12 @@ export class GraphsManager extends Component {
         this.registerEvents();
     }
 
+    override onunload(): void {
+        for (const instances of [...this.allInstances.values()]) {
+            this.lifecycleManager.disablePlugin(instances.view);
+        }
+    }
+
     private addStatusBarItem(): void {
         this.statusBarItem = ExtendedGraphInstances.plugin.addStatusBarItem();
         this.statusBarItem.addClasses(['plugin-extended-graph']);
