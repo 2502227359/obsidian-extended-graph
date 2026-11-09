@@ -35,3 +35,7 @@ download-stats.py
 releases.csv
 data with group.json
 benchmarks/
+
+# 独立 Obsidian 测试库与运行结果
+.test-vault/
+.test-results/
