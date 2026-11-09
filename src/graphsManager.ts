@@ -186,11 +186,11 @@ export class GraphsManager extends Component {
      */
     private onMetadataCacheChange(file: TFile, data?: string, cache?: CachedMetadata) {
         for (const instances of this.allInstances.values()) {
-            if (!instances.graph || !instances.renderer) return;
+            if (!instances.graph || !instances.renderer) continue;
 
             // Update nodes interactives
             const extendedNode = instances.nodesSet.extendedElementsMap.get(file.path) as ExtendedGraphFileNode;
-            if (!extendedNode) return;
+            if (!extendedNode) continue;
             for (const [key, manager] of instances.nodesSet.managers) {
                 const settings = instances.settings.interactiveSettings[key];
                 const fileTypes = getFileInteractives(key, file, instances.settings);
