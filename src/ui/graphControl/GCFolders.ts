@@ -101,8 +101,8 @@ export class GCFolders extends GCSection implements InteractiveUI {
     remove(key: string, paths: Set<string> | string[]): void {
         for (const path of paths) {
             const setting = this.settingsMap.get(path);
-            if (!path) continue;
-            setting?.setting.settingEl.remove();
+            if (!setting) continue;
+            setting.setting.settingEl.remove();
             this.settingsMap.delete(path);
         }
     }

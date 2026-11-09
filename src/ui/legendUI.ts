@@ -4,7 +4,6 @@ import {
     CombinationLogic,
     FOLDER_KEY,
     GraphInstances,
-    GraphStateData,
     GraphStateDataQuery,
     InteractiveManager,
     InteractiveUI,
@@ -232,20 +231,23 @@ class LegendRow extends Setting {
         if (this.isCollapsed) this.expend();
         else this.collapse();
 
-        const stateData = ExtendedGraphInstances.statesManager.getStateDataById(this.manager.instances.settings.startingStateID);
+        // Always persist to the graph's current state (it changes when the user switches states)
+        const stateData = this.manager.instances.stateData;
         if (stateData) {
             if (this.isCollapsed) {
                 if (!stateData.collapsedLegendRows) {
                     stateData.collapsedLegendRows = [];
                 }
-                stateData.collapsedLegendRows?.push(this.name);
+                if (!stateData.collapsedLegendRows.contains(this.name)) {
+                    stateData.collapsedLegendRows.push(this.name);
+                }
             }
             else {
                 stateData.collapsedLegendRows?.remove(this.name);
             }
-        }
 
-        if (stateData) ExtendedGraphInstances.statesManager.onStateNeedsSaving(stateData, false);
+            ExtendedGraphInstances.statesManager.onStateNeedsSaving(stateData, false);
+        }
     }
 
     collapse() {
@@ -311,7 +313,6 @@ export class LegendUI extends Component implements InteractiveUI {
         if (this.instances.settings.horizontalLegend) this.root.addClass("horizontal-layout");
         this.rowsDiv = this.root.createDiv("graph-legend-rows");
         const hideRowsContainer = createDiv("graph-legend-hide-rows-container");
-        const stateData = ExtendedGraphInstances.statesManager.getStateDataById(this.instances.settings.startingStateID);
 
         for (const [key, manager] of this.instances.interactiveManagers) {
             if (key === FOLDER_KEY) continue;
@@ -329,7 +330,7 @@ export class LegendUI extends Component implements InteractiveUI {
             hideRowButton.setButtonText(key)
                 .setTooltip(t("controls.hideRow") + ": " + key, { placement: 'top' })
                 .onClick(() => {
-                    this.toggleVisibility(row, stateData);
+                    this.toggleVisibility(row);
                 })
                 .then(cb => {
                     row.visibilityButton = {
@@ -340,10 +341,10 @@ export class LegendUI extends Component implements InteractiveUI {
                 });
 
 
-            if (stateData?.hiddenLegendRows?.contains(key)) {
+            if (this.instances.stateData?.hiddenLegendRows?.contains(key)) {
                 row.row.hide();
             }
-            if (stateData?.collapsedLegendRows?.contains(key)) {
+            if (this.instances.stateData?.collapsedLegendRows?.contains(key)) {
                 row.row.collapse();
             }
         }
@@ -358,11 +359,13 @@ export class LegendUI extends Component implements InteractiveUI {
         }
     }
 
-    private toggleVisibility(row: RowData, stateData: GraphStateData | undefined) {
+    private toggleVisibility(row: RowData) {
         row.row.toggleVisibility();
 
         row.visibilityButton.cb.buttonEl.toggleClass("is-inactive", !row.row.isVisible);
         setIcon(row.visibilityButton.eyeIcon, row.row.isVisible ? "eye" : "eye-off");
+        // Always persist to the graph's current state (it changes when the user switches states)
+        const stateData = this.instances.stateData;
         if (stateData) {
             if (row.row.isVisible) {
                 stateData.hiddenLegendRows?.remove(row.row.name);
@@ -371,7 +374,9 @@ export class LegendUI extends Component implements InteractiveUI {
                 if (!stateData.hiddenLegendRows) {
                     stateData.hiddenLegendRows = [];
                 }
-                stateData.hiddenLegendRows?.push(row.row.name);
+                if (!stateData.hiddenLegendRows.contains(row.row.name)) {
+                    stateData.hiddenLegendRows.push(row.row.name);
+                }
             }
             ExtendedGraphInstances.statesManager.onStateNeedsSaving(stateData, false);
         }

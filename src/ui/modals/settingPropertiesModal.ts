@@ -39,19 +39,14 @@ export class SettingMultiPropertiesModal extends Modal {
 
     private addProperty(property: string) {
         const inputDiv = this.propertiesDiv.createDiv("property-value");
-        let oldKey = property;
 
         const input = new SearchComponent(inputDiv)
             .setValue(property)
             .onChange(key => {
-                if (this.renameProperty(oldKey, key)) {
-                    oldKey = key;
-                }
+                this.renamePropertyAt(this.indexOfRow(inputDiv), key);
             });
         new PropertiesSuggester(input.inputEl, (key) => {
-            if (this.renameProperty(oldKey, key)) {
-                oldKey = key;
-            }
+            this.renamePropertyAt(this.indexOfRow(inputDiv), key);
         });
         this.inputs.push(input);
 
@@ -62,17 +57,27 @@ export class SettingMultiPropertiesModal extends Modal {
         UIElements.setupExtraButton(deleteButton, 'delete');
     }
 
+    /** The row's DOM position is its index in the properties array (deletions splice in place). */
+    private indexOfRow(inputDiv: HTMLElement): number {
+        return Array.from(this.propertiesDiv.children).indexOf(inputDiv);
+    }
+
     private deleteProperty(inputDiv: HTMLElement, input: SearchComponent) {
+        const index = this.indexOfRow(inputDiv);
+        if (index >= 0 && index < this.properties.length) {
+            this.properties.splice(index, 1);
+        }
         this.inputs.remove(input);
-        this.properties.remove(input.getValue());
         inputDiv.remove();
         ExtendedGraphInstances.plugin.saveSettings();
     }
 
-    private renameProperty(oldKey: string, newKey: string): boolean {
+    private renamePropertyAt(index: number, newKey: string): boolean {
+        if (index < 0 || index >= this.properties.length) return false;
+        const oldKey = this.properties[index];
         if (isPropertyKeyValid(newKey) && !this.properties.contains(newKey) && newKey !== oldKey) {
-            this.properties.remove(oldKey);
-            this.properties.push(newKey);
+            // Replace in place: renaming must not reorder the list nor touch a sibling duplicate
+            this.properties[index] = newKey;
             ExtendedGraphInstances.plugin.saveSettings();
             return true;
         }

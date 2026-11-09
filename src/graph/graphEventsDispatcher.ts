@@ -701,7 +701,9 @@ export class GraphEventsDispatcher extends Component {
         }
 
 
-        const showNotice = this.lastFilteringAction?.userChange || true;
+        // Show the "node limit exceeded" notice for user-initiated changes (or when
+        // no action was recorded yet, e.g. first load); `|| true` made it unconditional.
+        const showNotice = this.lastFilteringAction?.userChange ?? true;
         if (this.lastFilteringAction) this.lastFilteringAction.userChange = false;
         if (ExtendedGraphInstances.graphsManager.lifecycleManager.isNodeLimitExceededForData(data, showNotice)) {
             if (ExtendedGraphInstances.settings.revertAction && this.lastFilteringAction) {

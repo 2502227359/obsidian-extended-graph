@@ -33,8 +33,12 @@ export class ExportConfigModal extends Modal {
             .addButton((cb) => {
                 cb.setIcon("upload");
                 cb.setCta();
-                cb.buttonEl.addEventListener('click', e => {
-                    if (this.callback(this.dropdown.getValue(), true)) {
+                cb.onClick(() => {
+                    // The dropdown is filled asynchronously: ignore clicks while
+                    // nothing is selected (empty value) instead of exporting to ""
+                    const name = this.dropdown.getValue();
+                    if (name === "") return;
+                    if (this.callback(name, true)) {
                         this.close();
                     }
                 });
@@ -48,7 +52,7 @@ export class ExportConfigModal extends Modal {
             .addButton((cb) => {
                 cb.setIcon("upload");
                 cb.setCta();
-                cb.buttonEl.addEventListener('click', e => {
+                cb.onClick(() => {
                     this.validate(this.input.getValue());
                 })
             });

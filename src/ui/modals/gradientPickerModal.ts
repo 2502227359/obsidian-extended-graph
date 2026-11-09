@@ -5,6 +5,7 @@ import { cmOptions, GradientMakerModal, plotColorMap, plotColorMapFromName, Exte
 export class GradientPickerModal extends Modal {
     callback: (palette: string) => void;
     selectedPalette: string = "";
+    lastNotifiedPalette: string | undefined;
     customPalettes: Record<string, { name: string, setting: Setting, canvas: HTMLCanvasElement }> = {};
 
     constructor() {
@@ -59,8 +60,7 @@ export class GradientPickerModal extends Modal {
                     const modal = new GradientMakerModal();
                     modal.onSave(name => {
                         this.addCustomPalette(name, group.controlEl);
-                        this.selectedPalette = "custom:" + name;
-                        this.callback(this.selectedPalette);
+                        this.notifySelection("custom:" + name);
                     });
                     modal.open();
                 });
@@ -141,8 +141,7 @@ export class GradientPickerModal extends Modal {
             }
             await ExtendedGraphInstances.plugin.saveSettings();
         }
-        this.selectedPalette = customNewName;
-        this.callback(this.selectedPalette);
+        this.notifySelection(customNewName);
 
         this.customPalettes[id].name = newName;
         this.customPalettes[id].setting.setName(newName);
@@ -166,8 +165,7 @@ export class GradientPickerModal extends Modal {
         }
         ExtendedGraphInstances.plugin.saveSettings();
 
-        this.selectedPalette = "rainbow";
-        this.callback(this.selectedPalette);
+        this.notifySelection("rainbow");
         this.customPalettes[id].setting.settingEl.detach();
         delete this.customPalettes[id];
     }
@@ -197,7 +195,17 @@ export class GradientPickerModal extends Modal {
 
     override onClose(): void {
         this.contentEl.empty();
-        if (this.selectedPalette !== "") this.callback(this.selectedPalette);
+        // Create/edit/delete already notified the callback with this value:
+        // only fire again if the user picked another palette afterwards.
+        if (this.selectedPalette !== "" && this.selectedPalette !== this.lastNotifiedPalette) {
+            this.callback(this.selectedPalette);
+        }
+    }
+
+    private notifySelection(palette: string): void {
+        this.selectedPalette = palette;
+        this.lastNotifiedPalette = palette;
+        this.callback(palette);
     }
 
     onSelected(callback: (palette: string) => void) {

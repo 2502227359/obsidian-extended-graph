@@ -26,6 +26,9 @@ export interface LayerGroup {
     layers: GraphLayer[];
 }
 
+/** Elements that already have their layer-cleanup 'destroyed' listener attached. */
+const layerTrackedElements = new WeakSet<DisplayObject>();
+
 export class LayersManager {
     layerGroups: LayerGroup[] = [];
     notInLayers: { nodeIDs: string[], layerGroup: LayerGroup };
@@ -187,9 +190,17 @@ export class LayersManager {
             const coreElement = ExtendedGraphInstances.proxysManager.getTargetForProxy(element) ?? element;
             at !== undefined ? pixiAddChildAt(layer.container, coreElement, at) : pixiAddChild(layer.container, coreElement);
             this.graphicsArray[array].add(coreElement);
-            coreElement.on('destroyed', () => {
-                this.graphicsArray[array].delete(coreElement);
-            });
+            // Elements are re-added on every enable/rebuild cycle: attach the
+            // cleanup listener only once or it accumulates on each pass.
+            if (!layerTrackedElements.has(coreElement)) {
+                layerTrackedElements.add(coreElement);
+                coreElement.on('destroyed', () => {
+                    layerTrackedElements.delete(coreElement);
+                    for (const set of Object.values(this.graphicsArray)) {
+                        set.delete(coreElement);
+                    }
+                });
+            }
         }
     }
 
@@ -405,26 +416,27 @@ export class LayersManager {
         this.notInLayers.layerGroup.layers[0].nodes = [];
     }
 
+    private onLayerContainerChildRemoved(child: DisplayObject, container: Container): void {
+        if (container.children.length === 0) {
+            container.removeFromParent();
+            container.destroy();
+        }
+    }
+
     destroyContainers() {
         // Apparently, the method moveElementsOutOfContainers calls async methods
         // Because it takes a few milliseconds after the return to really get every
         // element removed from the containers
         for (const group of this.layerGroups) {
             for (const layer of group.layers) {
-                layer.container.on('childRemoved', (child, container) => {
-                    if (container.children.length === 0) {
-                        container.removeFromParent();
-                        container.destroy();
-                    }
-                })
+                // Off first: destroyContainers can run several times on the same containers
+                layer.container.off('childRemoved', this.onLayerContainerChildRemoved);
+                layer.container.on('childRemoved', this.onLayerContainerChildRemoved);
             }
         }
-        this.notInLayers.layerGroup.layers[0].container.on('childRemoved', (child, container) => {
-            if (container.children.length === 0) {
-                container.removeFromParent();
-                container.destroy();
-            }
-        })
+        const notInLayersContainer = this.notInLayers.layerGroup.layers[0].container;
+        notInLayersContainer.off('childRemoved', this.onLayerContainerChildRemoved);
+        notInLayersContainer.on('childRemoved', this.onLayerContainerChildRemoved);
         this.moveElementsOutOfContainers();
     }
 
