@@ -89,8 +89,12 @@ export class InteractivesSelectionModal extends Modal {
     private updateRegexDesc() {
         const regex = ExtendedGraphInstances.settings.interactiveSettings[this.key].excludeRegex.regex;
         const flags = ExtendedGraphInstances.settings.interactiveSettings[this.key].excludeRegex.flags;
-        this.regexSetting.descEl.innerHTML = t("query.excludeRegexDesc") +
-            "<ul>" + regex.split("\n").map(r => `<li>/${r}/${flags}</li>`).join("") + "</ul>";
+        this.regexSetting.descEl.empty();
+        this.regexSetting.descEl.createSpan({ text: t("query.excludeRegexDesc") });
+        const list = this.regexSetting.descEl.createEl("ul");
+        for (const r of regex.split("\n")) {
+            list.createEl("li", { text: `/${r}/${flags}` });
+        }
     }
 
     private selectInteractive(label: HTMLLabelElement, toggle: HTMLInputElement) {

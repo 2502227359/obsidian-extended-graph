@@ -166,6 +166,7 @@
         },
         "externalLinksProperties": "Propriétés pour les URLs externes",
         "externalLinksPropertiesDesc": "Noms des propriétés pouvant être utilisées pour déterminer si un nœud d'URL externe doit rediriger vers cette note ou vers la vue Web lorsqu'on clique dessus",
+        "externalLinksPropertiesAdd": "Ajouter une propriété pour les URLs externes",
         "noExclusionFilter": "Aucun filtre d'exclusion n'est appliqué pour le moment. Ajoutez-en un en dessous",
         "withExclusionFilter": "Les fichiers correspondant aux filtres suivants n'auront pas de liens entrant/sortant dans le graphe :",
         "fadeInElements": "Introduire progressivement de nouveaux éléments",

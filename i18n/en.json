@@ -166,6 +166,7 @@
         },
         "externalLinksProperties": "External URLs properties",
         "externalLinksPropertiesDesc": "Names of the properties that can be used to decide if an external URL node should redirect towards a specific note or to the web view when clicked",
+        "externalLinksPropertiesAdd": "Add external URLs property",
         "noExclusionFilter": "No excluded filter is applied right now. Add one below.",
         "withExclusionFilter": "Files matching the following filters won't have back/forward links in the graph:",
         "fadeInElements": "Fade in new elements",

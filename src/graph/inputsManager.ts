@@ -66,8 +66,7 @@ export class InputsManager {
         this.instances.renderer.px.stage.off('pointermove', this.onPointerMoveOnStage);
 
         this.instances.renderer.interactiveEl.win.window.removeEventListener("mouseup", this.onPointerUpOnWindow);
-        this.instances.renderer.interactiveEl.win.window.removeEventListener("mouseup", this.onInputToUnselectNodes);
-        this.instances.renderer.interactiveEl.win.window.removeEventListener("keydown", this.onInputToUnselectNodes);
+        this.stopListeningToUnselectNodes();
     }
 
     private restoreOnNodeClick(): void {
