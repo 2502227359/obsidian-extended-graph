@@ -82,7 +82,10 @@ export class GraphStateModal extends Modal {
             colgroup.createEl("col").addClass("col-size");
         }
 
-        if (!hasRows) return;
+        if (!hasRows) {
+            this.addEmptyRow(table, colgroup);
+            return;
+        }
 
         const tbody = table.createTBody();
         const ids: string[] = [];
@@ -159,7 +162,10 @@ export class GraphStateModal extends Modal {
             colgroup.createEl("col").addClass("col-size");
         }
 
-        if (!hasRows) return;
+        if (!hasRows) {
+            this.addEmptyRow(table, colgroup);
+            return;
+        }
 
         const tbody = table.createTBody();
         const ids: string[] = [];
@@ -220,7 +226,10 @@ export class GraphStateModal extends Modal {
         cell = tr_thead.insertCell(); cell.setText(t("plugin.posY"));
         colgroup.createEl("col").addClass("col-pos-y");
 
-        if (!this.state.data.pinNodes || !hasRows) return;
+        if (!this.state.data.pinNodes || !hasRows) {
+            this.addEmptyRow(table, colgroup);
+            return;
+        }
 
         const tbody = table.createTBody();
         const ids: string[] = [];
@@ -327,6 +336,15 @@ export class GraphStateModal extends Modal {
             return span;
         }
         return;
+    }
+
+    /** Renders a "no entries" row spanning all columns when a table has no data. */
+    private addEmptyRow(table: HTMLTableElement, colgroup: HTMLTableColElement): void {
+        const tr = table.createTBody().insertRow();
+        const td = tr.insertCell();
+        td.colSpan = colgroup.children.length;
+        td.setText(t("notices.noEntries"));
+        td.addClass("table-empty");
     }
 
     private prepareTable(key: TableType, table: HTMLTableElement, rowIds: string[], index: number = 1) {

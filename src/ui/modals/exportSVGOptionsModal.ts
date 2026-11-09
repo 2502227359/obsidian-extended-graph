@@ -218,6 +218,12 @@ export class ExportSVGOptionModal extends Modal {
     private addApply() {
         const setting = new Setting(this.contentEl)
             .addButton(cb => {
+                cb.setButtonText(t("controls.cancel"));
+                cb.onClick(() => {
+                    this.close();
+                })
+            })
+            .addButton(cb => {
                 cb.setButtonText(t("features.svgScreenshotCopyCode"));
                 cb.onClick(() => {
                     this.isCanceled = false;

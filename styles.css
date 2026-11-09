@@ -33,6 +33,7 @@ body {
     margin-inline: auto;
     width: fit-content;
     max-width: calc(100% - 2 * var(--size-4-3));
+    max-height: 60vh;
     overflow: auto;
     display: flex;
     flex-direction: column;
@@ -66,6 +67,10 @@ body {
             vertical-align: text-bottom;
             padding-block: 0;
         }
+    }
+
+    .setting-item-name.mod-clickable {
+        cursor: pointer;
     }
 
     @media (hover: hover) {
@@ -103,6 +108,8 @@ body {
         background-color: rgba(var(--legend-color-rgb), 0.1);
         color: var(--text-faint);
         font-weight: unset;
+        border: 1px dashed rgba(var(--legend-color-rgb), 0.4);
+        text-decoration: line-through;
     }
 
     .graph-legend-none {
@@ -258,6 +265,10 @@ body {
                 padding-inline-end: 0;
             }
         }
+
+        .setting-item-info svg {
+            transform: rotate(-90deg);
+        }
     }
 
     .graph-legend-hide-rows-container {
@@ -411,8 +422,21 @@ body {
 /* MODAL GRAPH STATE */
 
 .graph-modal-graph-state {
-    --dialog-width: 80vw;
+    --dialog-width: min(80vw, 1400px);
+    max-height: calc(100vh - 2 * var(--size-4-5));
+    display: flex;
+    flex-direction: column;
     font-family: var(--font-interface);
+
+    .modal-content {
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .table-empty {
+        color: var(--text-faint);
+        text-align: center;
+    }
 
     .tag {
         text-decoration: none;

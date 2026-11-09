@@ -477,7 +477,8 @@
         "importConfirmBody": "Importing will overwrite ALL current settings (palettes, shape queries, layer definitions…) with the selected configuration. This cannot be undone. Continue?",
         "settingsImported": "Settings imported",
         "exportOverrideConfirmBody": "The configuration file \"{{name}}\" will be overwritten. Continue?",
-        "paletteDeleteConfirmBody": "This will delete the custom palette \"{{name}}\". Every place using it will be reset to rainbow. Continue?"
+        "paletteDeleteConfirmBody": "This will delete the custom palette \"{{name}}\". Every place using it will be reset to rainbow. Continue?",
+        "noEntries": "No entries"
     },
     "query": {
         "AND": "AND",

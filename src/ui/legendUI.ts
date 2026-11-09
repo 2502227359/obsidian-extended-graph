@@ -186,12 +186,18 @@ class LegendRow extends Setting {
 
     disableUI(type: string) {
         const button = this.controlEl.getElementsByClassName(this.getClassName(type))[0];
-        if (button) button.addClass("is-hidden");
+        if (button) {
+            button.addClass("is-hidden");
+            button.setAttribute("aria-pressed", "true");
+        }
     }
 
     enableUI(type: string) {
         const button = this.controlEl.getElementsByClassName(this.getClassName(type))[0];
-        if (button) button.removeClass("is-hidden");
+        if (button) {
+            button.removeClass("is-hidden");
+            button.setAttribute("aria-pressed", "false");
+        }
     }
 
     disableAll() {

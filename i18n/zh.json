@@ -477,7 +477,8 @@
         "importConfirmBody": "导入将用所选配置覆盖当前全部设置（包括调色板、形状查询、图层定义等），且无法撤销。是否继续？",
         "settingsImported": "设置已导入",
         "exportOverrideConfirmBody": "配置文件「{{name}}」将被覆盖。是否继续？",
-        "paletteDeleteConfirmBody": "将删除自定义调色板「{{name}}」，所有使用它的位置将被重置为 rainbow。是否继续？"
+        "paletteDeleteConfirmBody": "将删除自定义调色板「{{name}}」，所有使用它的位置将被重置为 rainbow。是否继续？",
+        "noEntries": "暂无数据"
     },
     "query": {
         "AND": "全部匹配",

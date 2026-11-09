@@ -477,7 +477,8 @@
         "importConfirmBody": "L'import remplacera TOUS les réglages actuels (palettes, requêtes de formes, définitions de calques…) par la configuration choisie. Impossible d'annuler. Continuer ?",
         "settingsImported": "Réglages importés",
         "exportOverrideConfirmBody": "Le fichier de configuration « {{name}} » sera écrasé. Continuer ?",
-        "paletteDeleteConfirmBody": "La palette personnalisée « {{name}} » sera supprimée. Tous les usages seront réinitialisés sur rainbow. Continuer ?"
+        "paletteDeleteConfirmBody": "La palette personnalisée « {{name}} » sera supprimée. Tous les usages seront réinitialisés sur rainbow. Continuer ?",
+        "noEntries": "Aucune entrée"
     },
     "query": {
         "AND": "ET",
