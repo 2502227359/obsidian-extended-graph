@@ -43,12 +43,34 @@ export class SettingMultiPropertiesModal extends Modal {
         const input = new SearchComponent(inputDiv)
             .setValue(property)
             .onChange(key => {
-                this.renamePropertyAt(this.indexOfRow(inputDiv), key);
+                const index = this.indexOfRow(inputDiv);
+                if (index < 0 || index >= this.properties.length) return;
+                if (key === this.properties[index]) {
+                    errorEl.setText("");
+                    return;
+                }
+                if (this.renamePropertyAt(index, key)) {
+                    errorEl.setText("");
+                }
+                else {
+                    errorEl.setText(isPropertyKeyValid(key) ? t("features.interactives.propertyAlreadyExists") : t("notices.invalidCharacter"));
+                }
             });
         new PropertiesSuggester(input.inputEl, (key) => {
             this.renamePropertyAt(this.indexOfRow(inputDiv), key);
         });
         this.inputs.push(input);
+        const errorEl = inputDiv.createSpan({ cls: "error" });
+
+        // Leaving the field restores the persisted value, so the UI never
+        // shows a name that failed to apply.
+        input.inputEl.addEventListener("blur", () => {
+            const index = this.indexOfRow(inputDiv);
+            if (index >= 0 && index < this.properties.length) {
+                input.setValue(this.properties[index]);
+            }
+            errorEl.setText("");
+        });
 
         const deleteButton = new ExtraButtonComponent(inputDiv)
             .onClick(() => {

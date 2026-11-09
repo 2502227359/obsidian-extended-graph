@@ -96,7 +96,8 @@
         "uri401": "Unauthorized URL (Code 401) while trying to get an image for a node. This probably means that the URL is invalid. No image will be loaded and this message can safely be ignored.",
         "issueNeedView": "There was an issue with the plugin $t(plugin.name). Please close the graph view and open it again.",
         "paletteNameRequired": "You need to choose a name for this color map",
-        "invalidRegex": "Invalid regular expression or flags"
+        "invalidRegex": "Invalid regular expression or flags",
+        "nameInvalid": "The name is empty or already in use"
     },
     "features": {
         "ids": {
@@ -472,7 +473,11 @@
         "layerUpdateProgress": "Updating the layer value in notes: {{current}}/{{total}}",
         "layerUpdateDone": "Updated the layer value in {{count}} notes",
         "layerUpdateFailed": "Failed to update the frontmatter of {{count}} notes (see console for details)",
-        "dataInvalid": "There is an error in the settings file {{path}}, the json file can not be parsed. Please, make a copy of your file and report it on the GitHub repo, with the copy attached. Then, you can try to fix the file by hand, or fully delete the content of {{path}} and start using the plugin again (but you will lose your settings). I apologize for the inconvenience."
+        "dataInvalid": "There is an error in the settings file {{path}}, the json file can not be parsed. Please, make a copy of your file and report it on the GitHub repo, with the copy attached. Then, you can try to fix the file by hand, or fully delete the content of {{path}} and start using the plugin again (but you will lose your settings). I apologize for the inconvenience.",
+        "importConfirmBody": "Importing will overwrite ALL current settings (palettes, shape queries, layer definitions…) with the selected configuration. This cannot be undone. Continue?",
+        "settingsImported": "Settings imported",
+        "exportOverrideConfirmBody": "The configuration file \"{{name}}\" will be overwritten. Continue?",
+        "paletteDeleteConfirmBody": "This will delete the custom palette \"{{name}}\". Every place using it will be reset to rainbow. Continue?"
     },
     "query": {
         "AND": "AND",
@@ -516,6 +521,8 @@
     },
     "states": {
         "defaultState": "Default state",
+        "deleteConfirmTitle": "Delete state",
+        "deleteConfirmBody": "This will delete the state \"{{name}}\" and all of its saved configuration. This cannot be undone. Continue?",
         "editStateName": "Edit state name",
         "graphState": "Graph state",
         "newStateName": "New state name",

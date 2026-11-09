@@ -1,5 +1,5 @@
 import { Component, DropdownComponent, ExtraButtonComponent, Setting } from "obsidian";
-import { DEFAULT_STATE_ID, NewNameModal, UIElements, ExtendedGraphInstances, GraphInstances, t } from "../internal";
+import { DEFAULT_STATE_ID, ConfirmModal, NewNameModal, UIElements, ExtendedGraphInstances, GraphInstances, t } from "../internal";
 
 export class StatesUI extends Component {
     instances: GraphInstances;
@@ -94,7 +94,18 @@ export class StatesUI extends Component {
                 this.deleteButton = cb;
                 UIElements.setupExtraButton(cb, 'delete');
                 cb.onClick(() => {
-                    ExtendedGraphInstances.statesManager.deleteState(this.selectState.getValue());
+                    const stateId = this.selectState.getValue();
+                    const stateName = ExtendedGraphInstances.statesManager.getStateDataById(stateId)?.name ?? stateId;
+                    new ConfirmModal(
+                        t("states.deleteConfirmTitle"),
+                        t("states.deleteConfirmBody", { name: stateName }),
+                        (confirmed: boolean) => {
+                            if (confirmed) {
+                                ExtendedGraphInstances.statesManager.deleteState(stateId);
+                            }
+                        },
+                        true
+                    ).open();
                 });
             });
     }

@@ -403,6 +403,11 @@ body {
     font-size: var(--font-ui-medium);
 }
 
+/* Inline validation message shared by the input modals */
+.modal .error {
+    color: var(--color-red);
+}
+
 /* MODAL GRAPH STATE */
 
 .graph-modal-graph-state {

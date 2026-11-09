@@ -96,7 +96,8 @@
         "uri401": "获取节点图像时遇到 URL 未授权错误（代码401）：这可能意味着URL无效。图像将不会加载，可以安全忽略此消息。",
         "issueNeedView": "插件 $t(plugin.name) 出现问题。请关闭关系图谱后重新打开。",
         "paletteNameRequired": "需要为此颜色映射选择名称",
-        "invalidRegex": "无效的正则表达式或 flags"
+        "invalidRegex": "无效的正则表达式或 flags",
+        "nameInvalid": "名称不能为空或已被使用"
     },
     "features": {
         "ids": {
@@ -472,7 +473,11 @@
         "layerUpdateProgress": "正在更新笔记中的图层值：{{current}}/{{total}}",
         "layerUpdateDone": "已更新 {{count}} 篇笔记中的图层值",
         "layerUpdateFailed": "有 {{count}} 篇笔记的 frontmatter 更新失败（详情见控制台）",
-        "dataInvalid": "设置文件 {{path}} 存在错误，无法解析 JSON。请先备份该文件，并在 GitHub 仓库提交 issue 并附上备份。之后可以尝试手动修复文件，或清空 {{path}} 的全部内容后重新使用插件（但会丢失设置）。带来不便敬请谅解。"
+        "dataInvalid": "设置文件 {{path}} 存在错误，无法解析 JSON。请先备份该文件，并在 GitHub 仓库提交 issue 并附上备份。之后可以尝试手动修复文件，或清空 {{path}} 的全部内容后重新使用插件（但会丢失设置）。带来不便敬请谅解。",
+        "importConfirmBody": "导入将用所选配置覆盖当前全部设置（包括调色板、形状查询、图层定义等），且无法撤销。是否继续？",
+        "settingsImported": "设置已导入",
+        "exportOverrideConfirmBody": "配置文件「{{name}}」将被覆盖。是否继续？",
+        "paletteDeleteConfirmBody": "将删除自定义调色板「{{name}}」，所有使用它的位置将被重置为 rainbow。是否继续？"
     },
     "query": {
         "AND": "全部匹配",
@@ -516,6 +521,8 @@
     },
     "states": {
         "defaultState": "默认状态",
+        "deleteConfirmTitle": "删除状态",
+        "deleteConfirmBody": "将删除状态「{{name}}」及其保存的全部配置，且无法撤销。是否继续？",
         "editStateName": "编辑状态名称",
         "graphState": "图谱状态",
         "newStateName": "新状态名称",

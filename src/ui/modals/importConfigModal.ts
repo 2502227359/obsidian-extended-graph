@@ -28,9 +28,12 @@ export class ImportConfigModal extends Modal {
                 cb.setCta();
                 cb.buttonEl.addEventListener('click', e => {
                     const value = this.dropdown.getValue();
-                    if (value !== "") {
-                        this.callback(value);
+                    if (value === "") {
+                        // The dropdown may still be loading: stay open instead of
+                        // closing and letting the user believe the import happened.
+                        return;
                     }
+                    this.callback(value);
                     this.close();
                 });
             });

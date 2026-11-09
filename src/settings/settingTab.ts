@@ -1,5 +1,6 @@
 import { Notice, PluginSettingTab, Setting, ToggleComponent } from "obsidian";
 import {
+    ConfirmModal,
     ExportConfigModal,
     ImportConfigModal,
     ExtendedGraphInstances,
@@ -127,9 +128,18 @@ export class ExtendedGraphSettingTab extends PluginSettingTab {
                             new Notice(t("controls.configNameEmpty"));
                             return;
                         }
-                        ExtendedGraphInstances.plugin.importSettings(filepath).then(() => {
-                            this.display();
-                        });
+                        new ConfirmModal(
+                            t("controls.importSettings"),
+                            t("notices.importConfirmBody"),
+                            (confirmed: boolean) => {
+                                if (!confirmed) return;
+                                ExtendedGraphInstances.plugin.importSettings(filepath).then(() => {
+                                    new Notice(t("notices.settingsImported"));
+                                    this.display();
+                                });
+                            },
+                            true
+                        ).open();
                     });
                     modal.open();
                 });

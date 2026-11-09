@@ -1,11 +1,12 @@
 import { DropdownComponent, Modal, Setting, TextComponent } from "obsidian";
-import { getAllConfigFiles, ExtendedGraphInstances, t, pathParse } from "../../internal";
+import { getAllConfigFiles, ConfirmModal, ExtendedGraphInstances, t, pathParse } from "../../internal";
 
 export class ExportConfigModal extends Modal {
     callback: (name: string, fullpath: boolean) => boolean;
     input: TextComponent;
     dropdown: DropdownComponent;
     name?: string;
+    private errorEl: HTMLElement;
 
     constructor(callback: (name: string, fullpath: boolean) => boolean) {
         super(ExtendedGraphInstances.app);
@@ -37,10 +38,20 @@ export class ExportConfigModal extends Modal {
                     // The dropdown is filled asynchronously: ignore clicks while
                     // nothing is selected (empty value) instead of exporting to ""
                     const name = this.dropdown.getValue();
-                    if (name === "") return;
-                    if (this.callback(name, true)) {
-                        this.close();
+                    if (name === "") {
+                        this.showError(t("controls.configNameEmpty"));
+                        return;
                     }
+                    new ConfirmModal(
+                        t("controls.overrideConfig"),
+                        t("notices.exportOverrideConfirmBody", { name: pathParse(name, ".json").basename }),
+                        (confirmed: boolean) => {
+                            if (confirmed && this.callback(name, true)) {
+                                this.close();
+                            }
+                        },
+                        true
+                    ).open();
                 });
             });
 
@@ -48,6 +59,7 @@ export class ExportConfigModal extends Modal {
             .setName(t("controls.orCreateConfig"))
             .addText((text) => {
                 this.input = text;
+                this.input.onChange(() => this.errorEl.setText(""));
             })
             .addButton((cb) => {
                 cb.setIcon("upload");
@@ -56,15 +68,27 @@ export class ExportConfigModal extends Modal {
                     this.validate(this.input.getValue());
                 })
             });
+        this.errorEl = this.contentEl.createDiv({ cls: "error" });
     }
 
     onClose(): void {
         this.contentEl.empty();
     }
 
+    private showError(message: string): void {
+        this.errorEl.setText(message);
+    }
+
     private validate(value: string) {
+        if (value.trim() === "") {
+            this.showError(t("controls.configNameEmpty"));
+            return;
+        }
         if (this.callback(value, false)) {
             this.close();
+        }
+        else {
+            this.showError(t("notices.invalidCharacter"));
         }
     }
 }

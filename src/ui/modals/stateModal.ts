@@ -255,14 +255,23 @@ export class GraphStateModal extends Modal {
 
                         const intValue = parseInt(value);
                         if (!isNaN(intValue) && intValue > 0) {
-                            const factor = table.maxRows / intValue;
-                            table.maxRows = intValue;
+                            // Cap the page size: unbounded values would render
+                            // the whole table in one go on large vaults.
+                            const maxRows = Math.clamp(intValue, 1, 500);
+                            if (maxRows !== intValue) cb.setValue(maxRows.toString());
+                            const factor = table.maxRows / maxRows;
+                            table.maxRows = maxRows;
                             table.page = Math.round(table.page * factor);
                             table.page = Math.clamp(table.page, 0, this.numberOfPages(key));
                             this.mountPagination(key);
                             this.showPageRows(key);
                         }
                     });
+                cb.inputEl.addEventListener("blur", () => {
+                    // Drop invalid text (empty, "abc") instead of leaving it in the field
+                    const table = this.sortableTables[key];
+                    if (table) cb.setValue(table.maxRows.toString());
+                });
                 cb.inputEl.insertAdjacentText('afterend', t("controls.rows"));
             });
 

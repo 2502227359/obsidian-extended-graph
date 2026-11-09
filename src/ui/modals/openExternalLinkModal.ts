@@ -25,6 +25,7 @@ export class OpenExternalLinkModal extends Modal {
             const button = new ButtonComponent(this.contentEl);
             button.setButtonText(item.display);
             button.onClick(() => {
+                this.close();
                 callback(item.file);
             });
         }
@@ -33,6 +34,7 @@ export class OpenExternalLinkModal extends Modal {
         button.setButtonText(t("controls.openOnWeb"));
         button.setCta();
         button.onClick(() => {
+            this.close();
             callback(null);
         });
     }

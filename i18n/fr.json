@@ -96,7 +96,8 @@
         "uri401": "URL non autorisée (Code 401) lors de la tentative d'obtention d'une image pour un nœud. Cela signifie probablement que l'URL est invalide. Aucune image ne sera chargée et ce message peut être ignoré en toute sécurité.",
         "issueNeedView": "Il y a eu un problème avec le module $t(plugin.name). Veuillez fermer la vue graphique et l'ouvrir à nouveau.",
         "paletteNameRequired": "Vous devez choisir un nom pour cette palette de couleurs",
-        "invalidRegex": "Expression régulière ou indicateurs invalides"
+        "invalidRegex": "Expression régulière ou indicateurs invalides",
+        "nameInvalid": "Le nom est vide ou déjà utilisé"
     },
     "features": {
         "ids": {
@@ -472,7 +473,11 @@
         "layerUpdateProgress": "Mise à jour de la valeur de calque dans les notes : {{current}}/{{total}}",
         "layerUpdateDone": "Valeur de calque mise à jour dans {{count}} notes",
         "layerUpdateFailed": "Échec de la mise à jour du frontmatter de {{count}} notes (voir la console pour plus de détails)",
-        "dataInvalid": "Il y a une erreur dans le fichier de paramètres {{path}}, le fichier JSON ne peut pas être analysé. Veuillez faire une copie de votre fichier et signaler le problème sur le dépôt GitHub, avec la copie jointe. Ensuite, vous pouvez essayer de corriger le fichier à la main, ou supprimer entièrement le contenu de {{path}} et réutiliser le plugin (mais vous perdrez vos paramètres). Veuillez nous excuser pour le dérangement."
+        "dataInvalid": "Il y a une erreur dans le fichier de paramètres {{path}}, le fichier JSON ne peut pas être analysé. Veuillez faire une copie de votre fichier et signaler le problème sur le dépôt GitHub, avec la copie jointe. Ensuite, vous pouvez essayer de corriger le fichier à la main, ou supprimer entièrement le contenu de {{path}} et réutiliser le plugin (mais vous perdrez vos paramètres). Veuillez nous excuser pour le dérangement.",
+        "importConfirmBody": "L'import remplacera TOUS les réglages actuels (palettes, requêtes de formes, définitions de calques…) par la configuration choisie. Impossible d'annuler. Continuer ?",
+        "settingsImported": "Réglages importés",
+        "exportOverrideConfirmBody": "Le fichier de configuration « {{name}} » sera écrasé. Continuer ?",
+        "paletteDeleteConfirmBody": "La palette personnalisée « {{name}} » sera supprimée. Tous les usages seront réinitialisés sur rainbow. Continuer ?"
     },
     "query": {
         "AND": "ET",
@@ -516,6 +521,8 @@
     },
     "states": {
         "defaultState": "État par défaut",
+        "deleteConfirmTitle": "Supprimer l'état",
+        "deleteConfirmBody": "L'état « {{name}} » et toute sa configuration enregistrée seront supprimés. Impossible d'annuler. Continuer ?",
         "editStateName": "Modifier le nom de l'état",
         "graphState": "État du graphe",
         "newStateName": "Nom du nouvel état",

@@ -1,6 +1,6 @@
 import { ButtonComponent, ExtraButtonComponent, Modal, setIcon, Setting } from "obsidian";
 import * as Color from '../../colors/color-bits';
-import { cmOptions, GradientMakerModal, plotColorMap, plotColorMapFromName, ExtendedGraphInstances, t, UIElements } from "../../internal";
+import { cmOptions, ConfirmModal, GradientMakerModal, plotColorMap, plotColorMapFromName, ExtendedGraphInstances, t, UIElements } from "../../internal";
 
 export class GradientPickerModal extends Modal {
     callback: (palette: string) => void;
@@ -97,7 +97,18 @@ export class GradientPickerModal extends Modal {
             new ExtraButtonComponent(setting.infoEl)
                 .then(cb => {
                     UIElements.setupExtraButton(cb, "delete");
-                    cb.onClick(() => this.deleteCustomPalette(id));
+                    cb.onClick(() => {
+                        const name = this.customPalettes[id]?.name;
+                        if (!name) return;
+                        new ConfirmModal(
+                            t("controls.delete"),
+                            t("notices.paletteDeleteConfirmBody", { name: name }),
+                            (confirmed: boolean) => {
+                                if (confirmed) this.deleteCustomPalette(id);
+                            },
+                            true
+                        ).open();
+                    });
                 });
 
             canvas.onclick = () => this.selectCustomPalette(id);
@@ -165,7 +176,11 @@ export class GradientPickerModal extends Modal {
         }
         ExtendedGraphInstances.plugin.saveSettings();
 
-        this.notifySelection("rainbow");
+        // Only move the selection when the deleted palette was the one in use:
+        // deleting an unused palette must not change the current choice.
+        if (this.selectedPalette === "custom:" + name) {
+            this.notifySelection("rainbow");
+        }
         this.customPalettes[id].setting.settingEl.detach();
         delete this.customPalettes[id];
     }

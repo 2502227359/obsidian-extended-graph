@@ -261,7 +261,8 @@ export class SettingLayers extends SettingsSectionPerGraphType {
                     return;
                 }
                 await applyChanges();
-            }
+            },
+            true
         ).open();
     }
 

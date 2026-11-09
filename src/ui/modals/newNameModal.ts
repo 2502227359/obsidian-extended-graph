@@ -1,10 +1,11 @@
 import { Modal, Setting, TextComponent } from "obsidian";
-import { ExtendedGraphInstances, UIElements } from "../../internal";
+import { ExtendedGraphInstances, UIElements, t } from "../../internal";
 
 export class NewNameModal extends Modal {
     callback: (name: string) => boolean;
     input: TextComponent;
     name?: string;
+    private errorEl: HTMLElement;
 
     constructor(title: string, callback: (name: string) => boolean, name?: string) {
         super(ExtendedGraphInstances.app);
@@ -14,9 +15,7 @@ export class NewNameModal extends Modal {
         this.name = name;
 
         this.scope.register(null, "Enter", (e: KeyboardEvent) => {
-            if (this.callback(this.input.getValue())) {
-                this.close();
-            }
+            this.submit();
         });
     }
 
@@ -27,15 +26,25 @@ export class NewNameModal extends Modal {
                 if (this.name) {
                     this.input.setValue(this.name);
                 }
+                this.input.onChange(() => this.errorEl.setText(""));
             })
             .addButton((cb) => {
                 UIElements.setupButton(cb, this.name ? 'edit' : 'add');
                 cb.buttonEl.addEventListener('click', e => {
-                    if (this.callback(this.input.getValue())) {
-                        this.close();
-                    }
+                    this.submit();
                 })
             });
+        this.errorEl = this.contentEl.createDiv({ cls: "error" });
+        this.input.inputEl.focus();
+    }
+
+    private submit(): void {
+        if (this.callback(this.input.getValue())) {
+            this.close();
+        }
+        else {
+            this.errorEl.setText(t("errors.nameInvalid"));
+        }
     }
 
     onClose(): void {
