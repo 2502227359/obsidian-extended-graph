@@ -148,6 +148,7 @@ export * from "./ui/graphControl/GCOptions";
 export * from "./ui/graphControl/GCFolders";
 
 export * from "./ui/modals/addPropertyInteractiveModal";
+export * from "./ui/modals/confirmModal";
 export * from "./ui/modals/excludeFoldersModal";
 export * from "./ui/modals/exportConfigModal";
 export * from "./ui/modals/exportSVGOptionsModal";

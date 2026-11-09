@@ -76,7 +76,8 @@
         "toggleAll": "切换所有文件夹",
         "toggleAllWithMoreThanOneNode": "含有大于1个节点数",
         "rows": "行",
-        "yes": "是"
+        "yes": "是",
+        "confirm": "确认"
     },
     "errors": {
         "uri401": "获取节点图像时遇到 URL 未授权错误（代码401）：这可能意味着URL无效。图像将不会加载，可以安全忽略此消息。",
@@ -449,7 +450,12 @@
         "stateRenamed": "状态已重命名",
         "stateSaved": "状态已保存",
         "normalStateSave": "已保存正常状态的引擎选项",
-        "svgCopied": "已将 SVG 复制到剪贴板"
+        "svgCopied": "已将 SVG 复制到剪贴板",
+        "layerUpdateConfirmTitle": "更新笔记 frontmatter 中的图层",
+        "layerUpdateConfirmBody": "即将把 {{count}} 篇笔记 frontmatter 中的图层值「{{old}}」替换为「{{new}}」。此操作会修改笔记内容且无法撤销，是否继续？",
+        "layerUpdateProgress": "正在更新笔记中的图层值：{{current}}/{{total}}",
+        "layerUpdateDone": "已更新 {{count}} 篇笔记中的图层值",
+        "layerUpdateFailed": "有 {{count}} 篇笔记的 frontmatter 更新失败（详情见控制台）"
     },
     "query": {
         "AND": "全部匹配",

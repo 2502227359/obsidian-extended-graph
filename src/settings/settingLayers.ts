@@ -1,5 +1,5 @@
-import { ButtonComponent, setIcon, Setting, TextComponent } from "obsidian";
-import { ExtendedGraphSettingTab, LayersManager, ExtendedGraphInstances, SettingsSectionPerGraphType, SettingMultiPropertiesModal, t, UIElements, Layer, getDataviewPlugin } from "../internal";
+import { ButtonComponent, Notice, setIcon, Setting, TFile, TextComponent } from "obsidian";
+import { ExtendedGraphSettingTab, LayersManager, ExtendedGraphInstances, SettingsSectionPerGraphType, SettingMultiPropertiesModal, ConfirmModal, t, UIElements, Layer, getDataviewPlugin } from "../internal";
 
 export class SettingLayers extends SettingsSectionPerGraphType {
     layerInfoSettings: LayerSetting[] = [];
@@ -186,44 +186,88 @@ export class SettingLayers extends SettingsSectionPerGraphType {
             setting.labelInput?.setValue(newLabel);
         }
 
+        const applyChanges = async () => {
+            if (oldLevel !== newLevel && !setting.layer.levelFromID) {
+                ExtendedGraphInstances.settings.layersLevels[newID] = newLevel
+                // We don't delete the previous one because it might be used by inline dataview properties
+            }
+
+            // If there is already a custom opacity for this new level, we don't do anything.
+            // But if there isn't, we copy the custom opacity of the old level
+            // We don't remove the old one because there are some inline properties from Dataview that might still use it
+            if (oldLevel in ExtendedGraphInstances.settings.layersCustomOpacity && !(newLevel in ExtendedGraphInstances.settings.layersCustomOpacity)) {
+                ExtendedGraphInstances.settings.layersCustomOpacity[newLevel] = ExtendedGraphInstances.settings.layersCustomOpacity[oldLevel];
+                await ExtendedGraphInstances.plugin.saveSettings();
+            }
+
+            // Then, we process all the frontmatters' files
+            const files = ExtendedGraphInstances.app.vault.getMarkdownFiles().filter(file => this.fileUsesLayerID(file, oldID));
+            if (files.length > 0) {
+                const notice = new Notice(t("notices.layerUpdateProgress", { current: 0, total: files.length }), 0);
+                let failures = 0;
+                for (let i = 0; i < files.length; i++) {
+                    try {
+                        await ExtendedGraphInstances.app.fileManager.processFrontMatter(files[i], (frontmatter) => {
+                            for (const property of ExtendedGraphInstances.settings.layerProperties) {
+                                // If a layer property exists and is currently equal to the old id, change its value
+                                if (property in frontmatter && frontmatter[property] === oldID) {
+                                    frontmatter[property] = newID;
+                                }
+                            }
+                        });
+                    }
+                    catch (error) {
+                        console.error(error);
+                        failures++;
+                    }
+                    notice.setMessage(t("notices.layerUpdateProgress", { current: i + 1, total: files.length }));
+                }
+                notice.hide();
+                new Notice(failures > 0
+                    ? t("notices.layerUpdateFailed", { count: failures })
+                    : t("notices.layerUpdateDone", { count: files.length }));
+            }
+
+            // Update the layer setting
+            updateSetting();
+
+            // Reorder the layers
+            const layers = this.layerInfoSettings.map(s => s.layer);
+            LayersManager.sortData(ExtendedGraphInstances.settings, layers);
+            this.addLayersInfoFromData(layers);
+        };
+
         if (oldLevel === newLevel && oldLabel === newLabel) {
             updateSetting();
             return;
         }
 
-        if (oldLevel !== newLevel && !setting.layer.levelFromID) {
-            ExtendedGraphInstances.settings.layersLevels[newID] = newLevel
-            // We don't delete the previous one because it might be used by inline dataview properties
+        // Rewriting frontmatter modifies the notes' content: ask for confirmation first
+        const affectedFiles = ExtendedGraphInstances.app.vault.getMarkdownFiles().filter(file => this.fileUsesLayerID(file, oldID));
+        if (affectedFiles.length === 0) {
+            await applyChanges();
+            return;
         }
-
-        // If there is already a custom opacity for this new level, we don't do anything.
-        // But if there isn't, we copy the custom opacity of the old level
-        // We don't remove the old one because there are some inline properties from Dataview that might still use it
-        if (oldLevel in ExtendedGraphInstances.settings.layersCustomOpacity && !(newLevel in ExtendedGraphInstances.settings.layersCustomOpacity)) {
-            ExtendedGraphInstances.settings.layersCustomOpacity[newLevel] = ExtendedGraphInstances.settings.layersCustomOpacity[oldLevel];
-            await ExtendedGraphInstances.plugin.saveSettings();
-        }
-
-        // Then, we process all the frontmatters' files
-        const files = ExtendedGraphInstances.app.vault.getMarkdownFiles();
-        for (const file of files) {
-            await ExtendedGraphInstances.app.fileManager.processFrontMatter(file, (frontmatter) => {
-                for (const property of ExtendedGraphInstances.settings.layerProperties) {
-                    // If a layer property exists and is currently equal to the old id, change its value
-                    if (property in frontmatter && frontmatter[property] === oldID) {
-                        frontmatter[property] = newID;
-                    }
+        new ConfirmModal(
+            t("notices.layerUpdateConfirmTitle"),
+            t("notices.layerUpdateConfirmBody", { old: oldID, new: newID, count: affectedFiles.length }),
+            async (confirmed) => {
+                if (!confirmed) {
+                    setting.levelInput.setValue(oldLevel.toString());
+                    setting.labelInput?.setValue(oldLabel);
+                    return;
                 }
-            });
-        }
+                await applyChanges();
+            }
+        ).open();
+    }
 
-        // Update the layer setting
-        updateSetting();
-
-        // Reorder the layers
-        const layers = this.layerInfoSettings.map(s => s.layer);
-        LayersManager.sortData(ExtendedGraphInstances.settings, layers);
-        this.addLayersInfoFromData(layers);
+    private fileUsesLayerID(file: TFile, layerID: string): boolean {
+        const frontmatter = ExtendedGraphInstances.app.metadataCache.getFileCache(file)?.frontmatter;
+        if (!frontmatter) return false;
+        return ExtendedGraphInstances.settings.layerProperties.some(
+            property => property in frontmatter && frontmatter[property] === layerID
+        );
     }
 }
 

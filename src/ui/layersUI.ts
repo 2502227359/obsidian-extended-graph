@@ -81,6 +81,8 @@ export class LayersUI extends Component {
         for (const child of Array.from(this.levelsArea.children)) {
             child.removeClass("current");
         }
+        // No layer rendered (empty vault layer set) or index out of range: nothing to highlight
+        if (currentIndex < 0 || currentIndex >= this.levelsArea.children.length) return;
         const firstDiv = this.levelsArea.children[currentIndex];
         const lastDiv = this.levelsArea.children[Math.min(
             this.levelsArea.children.length - 1,

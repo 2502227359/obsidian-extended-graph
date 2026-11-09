@@ -76,7 +76,8 @@
         "toggleAll": "Toggle all",
         "toggleAllWithMoreThanOneNode": "With more than one node",
         "rows": "rows",
-        "yes": "Yes"
+        "yes": "Yes",
+        "confirm": "Confirm"
     },
     "errors": {
         "uri401": "Unauthorized URL (Code 401) while trying to get an image for a node. This probably means that the URL is invalid. No image will be loaded and this message can safely be ignored.",
@@ -449,7 +450,12 @@
         "stateRenamed": "State has been renamed",
         "stateSaved": "State has been saved",
         "normalStateSave": "Engine options have been saved for the normal state",
-        "svgCopied": "SVG copied to clipboard"
+        "svgCopied": "SVG copied to clipboard",
+        "layerUpdateConfirmTitle": "Update layer in notes' frontmatter",
+        "layerUpdateConfirmBody": "The layer value \"{{old}}\" will be replaced by \"{{new}}\" in the frontmatter of {{count}} notes. This modifies the content of the notes and cannot be undone. Continue?",
+        "layerUpdateProgress": "Updating the layer value in notes: {{current}}/{{total}}",
+        "layerUpdateDone": "Updated the layer value in {{count}} notes",
+        "layerUpdateFailed": "Failed to update the frontmatter of {{count}} notes (see console for details)"
     },
     "query": {
         "AND": "AND",

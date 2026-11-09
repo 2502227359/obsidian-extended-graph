@@ -71,6 +71,7 @@ export class GraphEventsDispatcher extends Component {
 
     isLocalResetting: boolean = false;
     listenStage: boolean = true;
+    initTimeout: number | undefined;
     coreArrowAlpha?: number;
     coreLineHighlightColor?: GraphColorAttributes;
     coreSetData: (data: GraphData) => void;
@@ -241,6 +242,9 @@ export class GraphEventsDispatcher extends Component {
     }
 
     private bindStageEvents(): void {
+        // Bind idempotently: drop any previously bound references before re-adding,
+        // so repeated init cycles never accumulate duplicate hanger listeners.
+        this.unbindStageEvents();
         this.onChildAddedToStage = this.onChildAddedToStage.bind(this);
         this.instances.renderer.hanger.on('childAdded', this.onChildAddedToStage);
 
@@ -538,6 +542,7 @@ export class GraphEventsDispatcher extends Component {
      * Called when the component is unloaded.
      */
     onunload(): void {
+        this.clearPendingInitTimeout();
         this.unbindStageEvents();
         ExtendedGraphInstances.proxysManager.unregisterProxy(this.instances.renderer.renderCallback);
         ExtendedGraphInstances.proxysManager.unregisterProxy(this.instances.renderer.setData);
@@ -718,6 +723,7 @@ export class GraphEventsDispatcher extends Component {
     // ============================== GRAPH CYCLE ==============================
 
     private beforeDestroyGraphics() {
+        this.clearPendingInitTimeout();
         this.instances.cssBridge.unload();
         this.unbindStageEvents();
         this.inputsManager.unbindStageEvents();
@@ -750,7 +756,9 @@ export class GraphEventsDispatcher extends Component {
     }
 
     private afterInitGraphics() {
-        setTimeout(() => {
+        if (this.initTimeout !== undefined) window.clearTimeout(this.initTimeout);
+        this.initTimeout = window.setTimeout(() => {
+            this.initTimeout = undefined;
             if (!this._loaded) return;
             this.instances.cssBridge.load();
             for (const el of this.instances.linksSet.extendedElementsMap.values()) {
@@ -779,6 +787,12 @@ export class GraphEventsDispatcher extends Component {
             this.inputsManager.bindStageEvents();
             this.instances.renderer.changed();
         }, this.instances.settings.delay);
+    }
+
+    private clearPendingInitTimeout(): void {
+        if (this.initTimeout === undefined) return;
+        window.clearTimeout(this.initTimeout);
+        this.initTimeout = undefined;
     }
 
     private beforeRenderCallback() {

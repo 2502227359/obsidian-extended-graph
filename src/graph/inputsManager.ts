@@ -26,6 +26,9 @@ export class InputsManager {
     }
 
     bindStageEvents(): void {
+        // Bind idempotently: drop any previously bound references before re-adding,
+        // so repeated init cycles never accumulate duplicate stage listeners.
+        this.unbindStageEvents();
         this.onPointerDownOnStage = this.onPointerDownOnStage.bind(this);
         this.instances.renderer.px.stage.on('pointerdown', this.onPointerDownOnStage);
 

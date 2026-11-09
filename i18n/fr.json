@@ -76,7 +76,8 @@
         "toggleAll": "Basculer tout",
         "toggleAllWithMoreThanOneNode": "Avec plus d'un nœud",
         "rows": "lignes",
-        "yes": "Oui"
+        "yes": "Oui",
+        "confirm": "Confirmer"
     },
     "errors": {
         "uri401": "URL non autorisée (Code 401) lors de la tentative d'obtention d'une image pour un nœud. Cela signifie probablement que l'URL est invalide. Aucune image ne sera chargée et ce message peut être ignoré en toute sécurité.",
@@ -449,7 +450,12 @@
         "stateRenamed": "L'état a été renommé",
         "stateSaved": "L'état a été sauvegardé",
         "normalStateSave": "Les options du moteur ont été enregistrées pour l'état normal",
-        "svgCopied": "SVG copié dans le presse-papier"
+        "svgCopied": "SVG copié dans le presse-papier",
+        "layerUpdateConfirmTitle": "Mettre à jour le calque dans le frontmatter des notes",
+        "layerUpdateConfirmBody": "La valeur de calque \"{{old}}\" sera remplacée par \"{{new}}\" dans le frontmatter de {{count}} notes. Cela modifie le contenu des notes et ne peut pas être annulé. Continuer ?",
+        "layerUpdateProgress": "Mise à jour de la valeur de calque dans les notes : {{current}}/{{total}}",
+        "layerUpdateDone": "Valeur de calque mise à jour dans {{count}} notes",
+        "layerUpdateFailed": "Échec de la mise à jour du frontmatter de {{count}} notes (voir la console pour plus de détails)"
     },
     "query": {
         "AND": "ET",
