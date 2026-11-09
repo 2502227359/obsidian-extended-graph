@@ -9,7 +9,6 @@ import { GraphologyGraph, LinkStat, LinkStatCalculator } from "../../internal";
 import { Attributes, EdgeEntry } from "graphology-types";
 
 export class JaccardCalculator extends LinkStatCalculator {
-    cache: { [source: string]: { [target: string]: number } } = {};
 
     constructor(stat: LinkStat, graphologyGraph?: GraphologyGraph) {
         super(stat, "Jaccard", graphologyGraph);

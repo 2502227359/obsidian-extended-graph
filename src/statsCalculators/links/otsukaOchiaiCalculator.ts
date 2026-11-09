@@ -10,7 +10,6 @@ import { Attributes, EdgeEntry } from "graphology-types";
 import similarity from "wink-nlp/utilities/similarity";
 
 export class OtsukaOchiaiCalculator extends LinkStatCalculator {
-    cache: { [source: string]: { [target: string]: number } } = {};
 
     constructor(stat: LinkStat, graphologyGraph?: GraphologyGraph) {
         super(stat, "Otsuka-Ochiai", graphologyGraph);

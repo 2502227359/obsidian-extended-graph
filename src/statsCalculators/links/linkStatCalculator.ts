@@ -43,6 +43,7 @@ export const linkStatFunctionIsDynamic: Record<LinkStatFunction, boolean> = {
 export type LinkStat = 'size' | 'color';
 
 export abstract class LinkStatCalculator {
+    protected cache: { [source: string]: { [target: string]: number } } = {};
     linksStats: { [source: string]: { [target: string]: { measure: number, value: number } } };
     stat: LinkStat;
     graphologyGraph?: GraphologyGraph;
@@ -69,6 +70,7 @@ export abstract class LinkStatCalculator {
 
     private async getStats(direction: GraphStatsDirection): Promise<void> {
         if (!this.graphologyGraph?.graphology) return;
+        this.cache = {};
         this.linksStats = {};
 
         const g = direction === "reversed"

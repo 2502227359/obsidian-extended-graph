@@ -27,7 +27,6 @@ interface LineSentences {
 }
 
 export class CoCitationsCalculator extends LinkStatCalculator {
-    cache: { [source: string]: { [target: string]: number } } = {};
 
     constructor(stat: LinkStat, graphologyGraph?: GraphologyGraph) {
         super(stat, "Co-Citations", graphologyGraph);
@@ -46,12 +45,12 @@ export class CoCitationsCalculator extends LinkStatCalculator {
         const mdCache = ExtendedGraphInstances.app.metadataCache;
         const results: Record<string, number> = {};
 
-        g.forEachInNeighbor(source, async (pre) => {
+        for (const pre of g.inNeighbors(source)) {
             const file = mdCache.getFirstLinkpathDest(pre, '');
-            if (!file) return;
+            if (!file) continue;
 
             const cache = mdCache.getFileCache(file);
-            if (!cache?.links) return;
+            if (!cache?.links) continue;
 
             const preCocitations: { [name: string]: [number, CoCitation[]] } = {};
             const allLinks = [...cache.links];
@@ -367,7 +366,7 @@ export class CoCitationsCalculator extends LinkStatCalculator {
                     results[name] = cocitation[0];
                 }
             }
-        })
+        }
         results[source] = 0;
         this.cache[link.source] = results;
 
