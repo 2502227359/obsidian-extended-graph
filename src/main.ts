@@ -166,13 +166,6 @@ export default class ExtendedGraphPlugin extends Plugin {
         if (!settings) return DEFAULT_SETTINGS;
         if (typeof settings !== "object") return DEFAULT_SETTINGS;
 
-        // Remove invalid shallow keys
-        for (const key in settings) {
-            if (!DEFAULT_SETTINGS.hasOwnProperty(key)) {
-                delete settings[key];
-            }
-        }
-
         // 2.2.3 --> 2.2.4
         if ("additionalProperties" in settings && typeof settings["additionalProperties"] === "object") {
             for (const key of Object.keys(settings["additionalProperties"])) {
@@ -302,7 +295,10 @@ export default class ExtendedGraphPlugin extends Plugin {
         }
         if ("states" in settings && Array.isArray(settings["states"])) {
             const defaultState = settings["states"].find(state => state["id"] === DEFAULT_STATE_ID);
-            if (defaultState['name'] === "Vault (default)") {
+            if (!defaultState) {
+                settings["states"].unshift(structuredClone(DEFAULT_STATE_SETTINGS));
+            }
+            else if (defaultState['name'] === "Vault (default)") {
                 defaultState['name'] = DEFAULT_STATE_SETTINGS.name;
             }
         }
@@ -323,6 +319,12 @@ export default class ExtendedGraphPlugin extends Plugin {
             }
         }
 
+        // 旧字段完成迁移后，再删除已废弃或未知的顶层配置。
+        for (const key of Object.keys(settings)) {
+            if (!Object.prototype.hasOwnProperty.call(DEFAULT_SETTINGS, key)) {
+                delete settings[key];
+            }
+        }
         return settings;
     }
 
@@ -424,7 +426,7 @@ export default class ExtendedGraphPlugin extends Plugin {
     }
 
     async exportSettings(filepath: string, settings: ExtendedGraphSettings, state?: GraphState): Promise<void> {
-        this.app.vault.adapter.mkdir(ExtendedGraphInstances.configurationDirectory);
+        await this.app.vault.adapter.mkdir(ExtendedGraphInstances.configurationDirectory);
         filepath = normalizePath(filepath);
 
         const clonedSettings = structuredClone(settings) as Partial<typeof ExtendedGraphInstances.settings> & { stateID?: string };

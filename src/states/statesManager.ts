@@ -187,7 +187,7 @@ export class StatesManager {
         let filename = cleanFilename(state.data.name);
         if (!validateFilename(filename, false)) filename = "state_" + state.data.id;
         const filepath = ExtendedGraphInstances.configurationDirectory + "/" + filename + ".json";
-        ExtendedGraphInstances.plugin.exportSettings(filepath, instances.settings, state);
+        await ExtendedGraphInstances.plugin.exportSettings(filepath, instances.settings, state);
         this.cacheStatesConfigs[state.data.id] = {
             filepath: filepath,
             settings: await (() => {
