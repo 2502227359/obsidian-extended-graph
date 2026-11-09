@@ -920,10 +920,10 @@ body {
         gap: 0.75em;
         justify-content: flex-start;
         align-items: center;
-        overflow-x: auto;
         flex-wrap: wrap;
 
-        >.clickable-icon {
+        /* Each button is wrapped in a div next to its label: descendant, not child. */
+        .clickable-icon {
             background-color: var(--background-secondary);
 
             &:hover {
@@ -931,13 +931,10 @@ body {
             }
         }
 
-        >*:last-child {
-            margin-right: auto;
-        }
-
         >* {
             color: var(--text-faint);
             font-size: var(--font-ui-smaller);
+            white-space: nowrap;
         }
 
         .nav-label {

@@ -56,7 +56,7 @@ export abstract class SettingInteractives extends SettingsSectionPerGraphType {
         this.noneType = ExtendedGraphInstances.settings.interactiveSettings[this.interactiveKey].noneType;
         const setting = new Setting(this.containerEl)
             .setName(t("features.interactives.noneTypeID"))
-            .setDesc(t("features.interactives.noneTypeIDDesc") + this.interactiveKey)
+            .setDesc(t("features.interactives.noneTypeIDDesc", { key: this.interactiveKey }))
             .addText(cb => cb
                 .setValue(ExtendedGraphInstances.settings.interactiveSettings[this.interactiveKey].noneType)
                 .onChange(async (value) => {
@@ -79,7 +79,7 @@ export abstract class SettingInteractives extends SettingsSectionPerGraphType {
         this.undefinedType = settings.undefinedType;
         const setting = new Setting(this.containerEl)
             .setName(t("features.interactives.undefinedTypeID"))
-            .setDesc(t("features.interactives.undefinedTypeIDDesc") + this.interactiveKey)
+            .setDesc(t("features.interactives.undefinedTypeIDDesc", { key: this.interactiveKey }))
             .addText(cb => cb
                 .setValue(settings.undefinedType ?? "undefined")
                 .onChange(async (value) => {
@@ -94,7 +94,7 @@ export abstract class SettingInteractives extends SettingsSectionPerGraphType {
 
     protected addColorPaletteSetting(): void {
         this.settingColorPalette = new SettingColorPalette(this.containerEl, this.settingTab, this.interactiveKey)
-            .setDesc(t("features.interactives.paletteDesc") + this.interactiveKey);
+            .setDesc(t("features.interactives.paletteDesc", { key: this.interactiveKey }));
 
         this.settingColorPalette.setValue(ExtendedGraphInstances.settings.interactiveSettings[this.interactiveKey].colormap);
 

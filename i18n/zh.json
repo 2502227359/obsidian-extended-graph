@@ -21,7 +21,9 @@
         "tags": "标签",
         "properties": "属性",
         "global": "全局",
-        "local": "局部"
+        "local": "局部",
+        "posX": "X 坐标",
+        "posY": "Y 坐标"
     },
     "beta": {
         "beta": "Beta",
@@ -117,7 +119,7 @@
             "properties": "属性",
             "shapes": "形状",
             "tags": "标签",
-            "zoom": "聚焦"
+            "zoom": "缩放"
         },
         "animateDotsOnLinks": "在链接上显示圆点动画",
         "animateDotsOnLinksDesc": "当鼠标悬停在节点上时，在链接上显示圆点动画以展示信息流向",
@@ -261,11 +263,11 @@
             "linkTypes": "链接",
             "linkTypesDesc": "显示和筛选链接类型",
             "noneTypeID": "无类型ID",
-            "noneTypeIDDesc": "如果属性存在但没有值将赋予的ID",
+            "noneTypeIDDesc": "当 {{key}} 存在但没有值时赋予的 ID",
             "undefinedTypeID": "未定义类型ID",
-            "undefinedTypeIDDesc": "如果属性不存在将赋予的ID",
+            "undefinedTypeIDDesc": "当 {{key}} 不存在时赋予的 ID",
             "palette": "调色板",
-            "paletteDesc": "选择调色板",
+            "paletteDesc": "为 {{key}} 选择调色板",
             "paletteMatplotlibDesc": "这些颜色映射来自 matplotlib。您可以在此处查看更多信息：",
             "palettePickGradient": "选择渐变调色板",
             "properties": "属性",
@@ -297,6 +299,8 @@
         "layersOpacityPlaceholder": "不透明度",
         "layersOrder": "图层顺序",
         "layersOrderDesc": "选择图层是按升序还是降序排列",
+        "layersOrderAsc": "升序",
+        "layersOrderDescending": "降序",
         "layerProperties": "图层属性",
         "layerPropertiesDesc": "可用于查询节点笔记图层的属性名称",
         "layerPropertiesAdd": "添加图层属性",
@@ -424,9 +428,9 @@
         "svgScreenshotNodeShapes": "使用节点形状",
         "svgScreenshotOptions": "SVG 截图选项",
         "svgScreenshotVisibleArea": "仅导出可见区域",
-        "zoomOnNode": "聚焦节点",
-        "zoomScale": "聚焦比例",
-        "zoomScaleDesc": "聚焦到节点时放大的比例"
+        "zoomOnNode": "缩放至节点",
+        "zoomScale": "缩放倍数",
+        "zoomScaleDesc": "缩放至节点时放大的倍数"
     },
     "inputs": {
         "inputs": "输入",
@@ -515,7 +519,7 @@
         "editStateName": "编辑状态名称",
         "graphState": "图谱状态",
         "newStateName": "新状态名称",
-        "openSettings": "打开状态设置",
+        "openSettings": "显示/隐藏状态栏",
         "saveConfigsWithState": "保存状态时的配置",
         "saveConfigsWithStateDesc": "保存状态时，插件将自动保存与该状态同名的配置（并清除无效字符）",
         "saveForDefaultState": "保存为默认状态",

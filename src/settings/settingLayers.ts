@@ -63,8 +63,8 @@ export class SettingLayers extends SettingsSectionPerGraphType {
             .setDesc(t("features.layersOrderDesc"))
             .addDropdown(cb => {
                 cb.addOptions({
-                    "ASC": "0-9",
-                    "DESC": "9-0"
+                    "ASC": t("features.layersOrderAsc"),
+                    "DESC": t("features.layersOrderDescending")
                 }).setValue(ExtendedGraphInstances.settings.layersOrder)
                     .onChange(async (value) => {
                         if (value === "ASC" || value === "DESC") {

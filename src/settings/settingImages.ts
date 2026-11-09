@@ -64,7 +64,7 @@ export class SettingImages extends SettingsSection {
             .setName(t("features.imageBorderWidth"))
             .setDesc(t("features.imageBorderWidthDesc"))
             .addSlider(cb => {
-                const preview = document.createTextNode(ExtendedGraphInstances.settings.borderFactor.toString() + "%");
+                const preview = document.createTextNode((ExtendedGraphInstances.settings.borderFactor * 100).toFixed(0) + "%");
                 if (preview) {
                     cb.sliderEl.parentElement?.insertBefore(preview, cb.sliderEl);
                 }
@@ -72,7 +72,7 @@ export class SettingImages extends SettingsSection {
                     .setValue(ExtendedGraphInstances.settings.borderFactor * 100)
                     .onChange(value => {
                         ExtendedGraphInstances.settings.borderFactor = value / 100;
-                        if (preview) preview.textContent = ExtendedGraphInstances.settings.borderFactor.toString() + "%";
+                        if (preview) preview.textContent = (ExtendedGraphInstances.settings.borderFactor * 100).toFixed(0) + "%";
                         ExtendedGraphInstances.plugin.saveSettings();
                     });
             });

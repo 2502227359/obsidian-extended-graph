@@ -215,9 +215,9 @@ export class GraphStateModal extends Modal {
         colgroup.createEl("col").addClass("col-folder");
         cell = tr_thead.insertCell(); cell.setText(t("plugin.nodeName"));
         colgroup.createEl("col").addClass("col-filename");
-        cell = tr_thead.insertCell(); cell.setText("X");
+        cell = tr_thead.insertCell(); cell.setText(t("plugin.posX"));
         colgroup.createEl("col").addClass("col-pos-x");
-        cell = tr_thead.insertCell(); cell.setText("Y");
+        cell = tr_thead.insertCell(); cell.setText(t("plugin.posY"));
         colgroup.createEl("col").addClass("col-pos-y");
 
         if (!this.state.data.pinNodes || !hasRows) return;
