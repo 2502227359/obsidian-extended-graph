@@ -169,10 +169,10 @@ export abstract class ExportGraphToSVG {
         document.body.appendChild(this.svg);
         const { xMin, xMax, yMin, yMax } = Array.from(this.svg.children).reduce((acc: any, el) => {
             const { x, y, width, height } = (el as SVGGraphicsElement).getBBox();
-            if (!acc.xMin || x < acc.xMin) acc.xMin = x;
-            if (!acc.xMax || x + width > acc.xMax) acc.xMax = x + width;
-            if (!acc.yMin || y < acc.yMin) acc.yMin = y;
-            if (!acc.yMax || y + height > acc.yMax) acc.yMax = y + height;
+            if (acc.xMin === undefined || x < acc.xMin) acc.xMin = x;
+            if (acc.xMax === undefined || x + width > acc.xMax) acc.xMax = x + width;
+            if (acc.yMin === undefined || y < acc.yMin) acc.yMin = y;
+            if (acc.yMax === undefined || y + height > acc.yMax) acc.yMax = y + height;
             return acc;
         }, {});
         document.body.removeChild(this.svg);
