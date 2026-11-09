@@ -63,7 +63,7 @@ export class RuleQuery implements IRuleQuery {
 
     doesMatch(file: TFile, settings?: ExtendedGraphSettings): boolean | null {
         if (!this.isValid()) return null;
-        const folder = file.path;
+        const folder = file.parent?.path ?? "/";
         switch ((this.source as SourceKey)) {
             case 'all':
                 return true;
