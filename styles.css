@@ -149,14 +149,11 @@ body {
         border-top: 1px solid var(--background-modifier-border);
 
         button {
-            display: flex;
-            align-items: center;
-            gap: var(--size-2-2);
+            display: inline-block;
             padding: var(--size-4-1) var(--size-4-2);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            display: inline-block;
             line-height: 1;
 
             span {
@@ -741,18 +738,13 @@ body {
         }
     }
 
-    >.setting-item-heading~.setting-item:not(.setting-item-heading):not(.no-section) {
+    >.setting-item-heading~.setting-item:not(.setting-item-heading) {
         background-color: var(--background-secondary);
         padding-inline: 0.75em;
     }
 
     >.setting-item-heading+.setting-item {
         border-top: 0;
-    }
-
-    .setting-item:not(.no-section)+.setting-item.no-section {
-        border-top: 0;
-        margin-top: 0.75em;
     }
 
     .setting-item-heading.setting-automation.is-collapsed~.setting-automation,
@@ -779,7 +771,6 @@ body {
         display: none;
     }
 
-    .settings-colors-container,
     .settings-properties-container {
         flex-direction: column;
         align-items: stretch;
@@ -1079,43 +1070,6 @@ body {
 }
 
 
-.graph-modal-shape-picker .modal-content {
-    --svg-size: 70px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, var(--svg-size));
-    gap: 30px;
-    text-align: center;
-
-    .setting-item {
-        flex-direction: column-reverse;
-        gap: 5px;
-        border: 0;
-        padding: 0;
-    }
-
-    .setting-item>* {
-        margin: 0;
-    }
-
-    .setting-item-name {
-        text-transform: capitalize;
-    }
-
-    svg {
-        width: var(--svg-size);
-    }
-}
-
-@media (hover: hover) {
-    .graph-modal-shape-picker .modal-content .setting-item-control:hover {
-        box-shadow: none;
-        opacity: var(--icon-opacity-hover);
-        color: var(--icon-color-hover);
-        background-color: var(--background-modifier-hover);
-    }
-}
-
-
 /* PALETTES */
 
 .graph-modal-palette-picker {
@@ -1172,7 +1126,6 @@ body {
         display: inline;
         top: 0;
         bottom: 0;
-        left: calc(var(--handle-position) * 100%);
         transform: translateX(-50%);
         width: 15px;
         height: 100%;
@@ -1429,15 +1382,6 @@ svg.shape-svg {
                 }
             }
         }
-    }
-
-    .tooltip {
-        top: 50%;
-        left: 0;
-        right: 0;
-        margin-inline: auto;
-        width: fit-content;
-        transform: translateX(50%);
     }
 }
 

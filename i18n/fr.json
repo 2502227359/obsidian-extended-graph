@@ -15,7 +15,11 @@
         "settings": "Paramètres",
         "source": "Source",
         "target": "Cible",
-        "valuePlaceholder": "valeur..."
+        "valuePlaceholder": "valeur...",
+        "pin": "Épingler",
+        "links": "Liens",
+        "tags": "Étiquettes",
+        "properties": "Propriétés"
     },
     "beta": {
         "beta": "Bêta",

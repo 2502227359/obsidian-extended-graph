@@ -15,7 +15,11 @@
         "settings": "Settings",
         "source": "Source",
         "target": "Target",
-        "valuePlaceholder": "value..."
+        "valuePlaceholder": "value...",
+        "pin": "Pin",
+        "links": "Links",
+        "tags": "Tags",
+        "properties": "Properties"
     },
     "beta": {
         "beta": "Beta",

@@ -15,7 +15,11 @@
         "settings": "设置",
         "source": "来源",
         "target": "目标",
-        "valuePlaceholder": "输入值..."
+        "valuePlaceholder": "输入值...",
+        "pin": "固定",
+        "links": "链接",
+        "tags": "标签",
+        "properties": "属性"
     },
     "beta": {
         "beta": "Beta",

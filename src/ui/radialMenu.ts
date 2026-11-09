@@ -1,5 +1,5 @@
 import { Menu, MenuPositionDef } from "obsidian";
-import { CSSBridge, FOLDER_KEY, FolderBlob, GraphInstances, GraphStateModal, LINK_KEY, TAG_KEY, textColor } from "../internal";
+import { CSSBridge, FOLDER_KEY, FolderBlob, GraphInstances, GraphStateModal, LINK_KEY, TAG_KEY, t, textColor } from "../internal";
 
 interface RadialMenuItem {
     id: string;
@@ -42,10 +42,25 @@ export class RadialMenu extends Menu {
 
     override showAtPosition(position: MenuPositionDef, doc?: Document): this {
         this.position = position;
-        const t = super.showAtPosition(position, doc);
-        t.dom.style.left = position.x + "px";
-        t.dom.style.top = position.y + "px";
-        return t;
+        const menu = super.showAtPosition(position, doc);
+        this.centerOn(position);
+        return menu;
+    }
+
+    /**
+     * The radial menu is anchored by its center (CSS translate(-50%, -50%)), so the
+     * core viewport clamping (which assumes a top-left anchor) cannot be reused.
+     * Clamp the center ourselves to keep the circle fully on screen.
+     */
+    private centerOn(position: MenuPositionDef): void {
+        const win = this.dom.win;
+        const halfWidth = this.dom.offsetWidth / 2;
+        const halfHeight = this.dom.offsetHeight / 2;
+        const x = Math.min(Math.max(position.x, halfWidth), win.innerWidth - halfWidth);
+        const y = Math.min(Math.max(position.y, halfHeight), win.innerHeight - halfHeight);
+        this.dom.style.left = x + "px";
+        this.dom.style.top = y + "px";
+        this.position = { x, y };
     }
 
     private onClick(item: RadialMenuItem) {
@@ -116,7 +131,7 @@ export class RadialMenu extends Menu {
 
         this.onMenuClick = function (e: MouseEvent) {
             var t = e.targetNode;
-            if (t && t.instanceOf(Element) && (t.matchParent(".menu-item") || t.hasClass(".menu-item"))) {
+            if (t && t.instanceOf(Element) && (t.matchParent(".menu-item") || t.hasClass("menu-item"))) {
                 return;
             }
             else {
@@ -148,7 +163,8 @@ export class RadialMenu extends Menu {
 
     private switchWhithMenu(menu: RadialMenu) {
         if (!this.position) {
-            this.position = this.dom.getBoundingClientRect();
+            const rect = this.dom.getBoundingClientRect();
+            this.position = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
         }
 
         const parent = this.parentMenu;
@@ -201,14 +217,14 @@ export class RadialMenuManager {
         this.allItems = [
             {
                 id: 'info',
-                title: 'Info',
+                title: t("plugin.info"),
                 icon: 'info',
                 color: 'blue',
                 onClick: this.onShowInfo.bind(this)
             },
             {
                 id: 'pin',
-                title: 'Pin',
+                title: t("plugin.pin"),
                 icon: this.instances.nodesSet.isNodePinned(this.nodeID) ? 'pin-off' : 'pin',
                 color: 'red',
                 onClick: this.onPin.bind(this)
@@ -219,7 +235,7 @@ export class RadialMenuManager {
         if (this.instances.settings.enableFeatures[this.instances.type]['links'] && (this.getInteractivesTypes(LINK_KEY)?.size ?? 0) > 0) {
             this.allItems.push({
                 id: 'links',
-                title: 'Links',
+                title: t("plugin.links"),
                 icon: 'link',
                 color: 'orange',
                 onMouseEnter: (() => this.onShowInteractive(LINK_KEY)),
@@ -231,7 +247,7 @@ export class RadialMenuManager {
         if (this.instances.settings.enableFeatures[this.instances.type]['folders'] && (this.getInteractivesTypes(FOLDER_KEY)?.size ?? 0) > 0) {
             this.allItems.push({
                 id: 'folders',
-                title: 'Folders',
+                title: t("plugin.folders"),
                 icon: 'folder',
                 color: 'green',
                 onMouseEnter: (() => this.onShowInteractive(FOLDER_KEY)),
@@ -244,7 +260,7 @@ export class RadialMenuManager {
             if (this.instances.settings.enableFeatures[this.instances.type]['tags'] && (this.getInteractivesTypes(TAG_KEY)?.size ?? 0) > 0) {
                 this.allItems.push({
                     id: 'tags',
-                    title: 'Tags',
+                    title: t("plugin.tags"),
                     icon: 'tags',
                     color: 'pink',
                     onMouseEnter: (() => this.onShowInteractive(TAG_KEY)),
@@ -256,7 +272,7 @@ export class RadialMenuManager {
             if (this.instances.settings.enableFeatures[this.instances.type]['properties']) {
                 const propertiesItem: RadialMenuItem = {
                     id: 'properties',
-                    title: 'Properties',
+                    title: t("plugin.properties"),
                     icon: 'archive',
                     color: 'purple',
                     items: []
