@@ -87,7 +87,7 @@ export class InputsManager {
         this.preventDraggingPinnedNodes();
 
         // Selection if "shift" is holded
-        if (e.button === 0 && Keymap.isModifier(e, ExtendedGraphInstances.settings.selectNodeModifier) && !this.instances.renderer.dragNode) {
+        if (e.button === 0 && Keymap.isModifier(e.nativeEvent, ExtendedGraphInstances.settings.selectNodeModifier) && !this.instances.renderer.dragNode) {
             // Get start position, and add rectangle if needed
             this.selectionStartPosition = e.getLocalPosition(this.instances.renderer.hanger);
             if (this.selectionRectangle.parent !== this.instances.renderer.hanger) {
