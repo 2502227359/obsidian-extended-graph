@@ -131,7 +131,7 @@ export class GraphStateModal extends Modal {
     private addLinks() {
         const hasRows = this.instances.linksSet.extendedElementsMap.size > 0;
 
-        this.createHeading("Links", "links", hasRows);
+        this.createHeading(t("plugin.links"), "links", hasRows);
 
         const table = this.contentEl.createEl("table");
         const colgroup = table.createEl("colgroup");

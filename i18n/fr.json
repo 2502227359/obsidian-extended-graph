@@ -19,7 +19,9 @@
         "pin": "Épingler",
         "links": "Liens",
         "tags": "Étiquettes",
-        "properties": "Propriétés"
+        "properties": "Propriétés",
+        "global": "Global",
+        "local": "Local"
     },
     "beta": {
         "beta": "Bêta",
@@ -81,7 +83,12 @@
         "toggleAllWithMoreThanOneNode": "Avec plus d'un nœud",
         "rows": "lignes",
         "yes": "Oui",
-        "confirm": "Confirmer"
+        "confirm": "Confirmer",
+        "configNameEmpty": "Le nom de la configuration ne peut pas être vide",
+        "propertyKey": "Clé de propriété",
+        "regex": "Regex",
+        "openOnWeb": "Ouvrir sur le Web",
+        "linkedState": " (🔗 état)"
     },
     "errors": {
         "uri401": "URL non autorisée (Code 401) lors de la tentative d'obtention d'une image pour un nœud. Cela signifie probablement que l'URL est invalide. Aucune image ne sera chargée et ce message peut être ignoré en toute sécurité.",
@@ -460,7 +467,8 @@
         "layerUpdateConfirmBody": "La valeur de calque \"{{old}}\" sera remplacée par \"{{new}}\" dans le frontmatter de {{count}} notes. Cela modifie le contenu des notes et ne peut pas être annulé. Continuer ?",
         "layerUpdateProgress": "Mise à jour de la valeur de calque dans les notes : {{current}}/{{total}}",
         "layerUpdateDone": "Valeur de calque mise à jour dans {{count}} notes",
-        "layerUpdateFailed": "Échec de la mise à jour du frontmatter de {{count}} notes (voir la console pour plus de détails)"
+        "layerUpdateFailed": "Échec de la mise à jour du frontmatter de {{count}} notes (voir la console pour plus de détails)",
+        "dataInvalid": "Il y a une erreur dans le fichier de paramètres {{path}}, le fichier JSON ne peut pas être analysé. Veuillez faire une copie de votre fichier et signaler le problème sur le dépôt GitHub, avec la copie jointe. Ensuite, vous pouvez essayer de corriger le fichier à la main, ou supprimer entièrement le contenu de {{path}} et réutiliser le plugin (mais vous perdrez vos paramètres). Veuillez nous excuser pour le dérangement."
     },
     "query": {
         "AND": "ET",
@@ -561,5 +569,11 @@
         "name": "Nom",
         "showPinIcon": "Afficher l'icône d'épingle",
         "showPinIconDesc": "Lorsqu'un nœud est épinglé, afficher une icône dans son coin supérieur droit pour indiquer son état épinglé"
+    },
+    "svg": {
+        "showModifiedArrows": "Afficher les flèches modifiées",
+        "showFolders": "Afficher les cadres de dossiers",
+        "showModifiedNames": "Afficher les noms modifiés",
+        "showIcons": "Afficher les icônes"
     }
 }

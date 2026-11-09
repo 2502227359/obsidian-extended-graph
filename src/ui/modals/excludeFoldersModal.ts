@@ -43,7 +43,7 @@ export class ExcludeFoldersModal extends Modal {
                 text: filter
             }, span => {
                 isRegex(filter) && span.createSpan({
-                    text: "Regex",
+                    text: t("controls.regex"),
                     cls: "flair mod-flat"
                 });
             });

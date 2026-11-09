@@ -19,7 +19,9 @@
         "pin": "Pin",
         "links": "Links",
         "tags": "Tags",
-        "properties": "Properties"
+        "properties": "Properties",
+        "global": "Global",
+        "local": "Local"
     },
     "beta": {
         "beta": "Beta",
@@ -81,7 +83,12 @@
         "toggleAllWithMoreThanOneNode": "With more than one node",
         "rows": "rows",
         "yes": "Yes",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "configNameEmpty": "Configuration name cannot be empty",
+        "propertyKey": "Property key",
+        "regex": "Regex",
+        "openOnWeb": "Open on web",
+        "linkedState": " (🔗 state)"
     },
     "errors": {
         "uri401": "Unauthorized URL (Code 401) while trying to get an image for a node. This probably means that the URL is invalid. No image will be loaded and this message can safely be ignored.",
@@ -460,7 +467,8 @@
         "layerUpdateConfirmBody": "The layer value \"{{old}}\" will be replaced by \"{{new}}\" in the frontmatter of {{count}} notes. This modifies the content of the notes and cannot be undone. Continue?",
         "layerUpdateProgress": "Updating the layer value in notes: {{current}}/{{total}}",
         "layerUpdateDone": "Updated the layer value in {{count}} notes",
-        "layerUpdateFailed": "Failed to update the frontmatter of {{count}} notes (see console for details)"
+        "layerUpdateFailed": "Failed to update the frontmatter of {{count}} notes (see console for details)",
+        "dataInvalid": "There is an error in the settings file {{path}}, the json file can not be parsed. Please, make a copy of your file and report it on the GitHub repo, with the copy attached. Then, you can try to fix the file by hand, or fully delete the content of {{path}} and start using the plugin again (but you will lose your settings). I apologize for the inconvenience."
     },
     "query": {
         "AND": "AND",
@@ -561,5 +569,11 @@
         "name": "Name",
         "showPinIcon": "Show pin icon",
         "showPinIconDesc": "When a node is pinned, show an icon in its top right corner to mark its pinned state"
+    },
+    "svg": {
+        "showModifiedArrows": "Show modified arrows",
+        "showFolders": "Show folder boxes",
+        "showModifiedNames": "Show modified names",
+        "showIcons": "Show icons"
     }
 }

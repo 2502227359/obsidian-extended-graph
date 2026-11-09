@@ -124,7 +124,7 @@ export class ExtendedGraphSettingTab extends PluginSettingTab {
                 cb.onClick(() => {
                     const modal = new ImportConfigModal((filepath: string) => {
                         if (filepath.trim() === "") {
-                            new Notice("Configuration name cannot be empty");
+                            new Notice(t("controls.configNameEmpty"));
                             return;
                         }
                         ExtendedGraphInstances.plugin.importSettings(filepath).then(() => {

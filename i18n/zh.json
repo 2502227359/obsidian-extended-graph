@@ -19,7 +19,9 @@
         "pin": "固定",
         "links": "链接",
         "tags": "标签",
-        "properties": "属性"
+        "properties": "属性",
+        "global": "全局",
+        "local": "局部"
     },
     "beta": {
         "beta": "Beta",
@@ -81,7 +83,12 @@
         "toggleAllWithMoreThanOneNode": "含有大于1个节点数",
         "rows": "行",
         "yes": "是",
-        "confirm": "确认"
+        "confirm": "确认",
+        "configNameEmpty": "配置名称不能为空",
+        "propertyKey": "属性键",
+        "regex": "正则",
+        "openOnWeb": "在网页打开",
+        "linkedState": " (🔗 状态)"
     },
     "errors": {
         "uri401": "获取节点图像时遇到 URL 未授权错误（代码401）：这可能意味着URL无效。图像将不会加载，可以安全忽略此消息。",
@@ -460,7 +467,8 @@
         "layerUpdateConfirmBody": "即将把 {{count}} 篇笔记 frontmatter 中的图层值「{{old}}」替换为「{{new}}」。此操作会修改笔记内容且无法撤销，是否继续？",
         "layerUpdateProgress": "正在更新笔记中的图层值：{{current}}/{{total}}",
         "layerUpdateDone": "已更新 {{count}} 篇笔记中的图层值",
-        "layerUpdateFailed": "有 {{count}} 篇笔记的 frontmatter 更新失败（详情见控制台）"
+        "layerUpdateFailed": "有 {{count}} 篇笔记的 frontmatter 更新失败（详情见控制台）",
+        "dataInvalid": "设置文件 {{path}} 存在错误，无法解析 JSON。请先备份该文件，并在 GitHub 仓库提交 issue 并附上备份。之后可以尝试手动修复文件，或清空 {{path}} 的全部内容后重新使用插件（但会丢失设置）。带来不便敬请谅解。"
     },
     "query": {
         "AND": "全部匹配",
@@ -561,5 +569,11 @@
         "name": "名称",
         "showPinIcon": "显示固定图标",
         "showPinIconDesc": "节点被固定时，在其右上角显示图标以标记固定状态"
+    },
+    "svg": {
+        "showModifiedArrows": "显示修改过的箭头",
+        "showFolders": "显示文件夹边框",
+        "showModifiedNames": "显示修改过的名称",
+        "showIcons": "显示图标"
     }
 }

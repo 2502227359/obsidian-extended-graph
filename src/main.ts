@@ -18,7 +18,8 @@ import {
     ProxysManager,
     rgb2hex,
     StatesManager,
-    TAG_KEY
+    TAG_KEY,
+    t
 } from './internal';
 
 // https://pixijs.download/v7.4.2/docs/index.html
@@ -140,7 +141,7 @@ export default class ExtendedGraphPlugin extends Plugin {
                 JSON.parse(await this.app.vault.adapter.read(dataPath));
             }
         } catch (error) {
-            const message = `There is an error in the settings file ${dataPath}, the json file can not be parsed. Please, make a copy of your file and report it on the GitHub repo, with the copy attached. Then, you can try to fix the file by hand, or fully delete the content of ${dataPath} and start using the plugin again (but you will lose your settings). I apologize for the inconvenience.`;
+            const message = t("notices.dataInvalid", { path: dataPath });
             new Notice(message, 0);
             console.warn(message);
             throw error;

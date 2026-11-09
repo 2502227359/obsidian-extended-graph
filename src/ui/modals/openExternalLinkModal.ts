@@ -30,7 +30,7 @@ export class OpenExternalLinkModal extends Modal {
         }
 
         const button = new ButtonComponent(this.contentEl);
-        button.setButtonText("Open on web");
+        button.setButtonText(t("controls.openOnWeb"));
         button.setCta();
         button.onClick(() => {
             callback(null);

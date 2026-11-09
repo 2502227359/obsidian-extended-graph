@@ -90,7 +90,7 @@ export class ExportSVGOptionModal extends Modal {
         if (!canUseModifiedArrows) return;
 
         new Setting(this.contentEl)
-            .setName("Show modified arrows")
+            .setName(t("svg.showModifiedArrows"))
             .addToggle(cb => {
                 cb.setValue(ExtendedGraphInstances.settings.exportSVGOptions.useModifiedArrows);
                 cb.onChange(value => {
@@ -101,7 +101,7 @@ export class ExportSVGOptionModal extends Modal {
     }
 
     private canUseModifiedArrows(): boolean {
-        if (!this.instances || !this.instances) return false;
+        if (!this.instances) return false;
         return this.instances.settings.enableFeatures[this.instances.type]['arrows'];
     }
 
@@ -156,7 +156,7 @@ export class ExportSVGOptionModal extends Modal {
         if (!canShowFolders) return;
 
         new Setting(this.contentEl)
-            .setName("Show folder boxes")
+            .setName(t("svg.showFolders"))
             .addToggle(cb => {
                 cb.setValue(ExtendedGraphInstances.settings.exportSVGOptions.showFolders);
                 cb.onChange(value => {
@@ -177,7 +177,7 @@ export class ExportSVGOptionModal extends Modal {
         if (!canShowModifiedNames) return;
 
         new Setting(this.contentEl)
-            .setName("Show modified names")
+            .setName(t("svg.showModifiedNames"))
             .addToggle(cb => {
                 cb.setValue(ExtendedGraphInstances.settings.exportSVGOptions.useModifiedNames);
                 cb.onChange(value => {
@@ -198,7 +198,7 @@ export class ExportSVGOptionModal extends Modal {
         if (!canShowIcons) return;
 
         new Setting(this.contentEl)
-            .setName("Show icons")
+            .setName(t("svg.showIcons"))
             .addToggle(cb => {
                 cb.setValue(ExtendedGraphInstances.settings.exportSVGOptions.showIcons);
                 cb.onChange(value => {

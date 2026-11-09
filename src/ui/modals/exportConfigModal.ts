@@ -27,7 +27,7 @@ export class ExportConfigModal extends Modal {
                 const files = await getAllConfigFiles();
                 cb.addOptions(Object.fromEntries(files.map(file => [
                     file,
-                    pathParse(file, ".json").basename + (ExtendedGraphInstances.statesManager.getStateFromConfig(file) ? " (🔗 state)" : "")
+                    pathParse(file, ".json").basename + (ExtendedGraphInstances.statesManager.getStateFromConfig(file) ? t("controls.linkedState") : "")
                 ])));
             })
             .addButton((cb) => {

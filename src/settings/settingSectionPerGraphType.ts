@@ -1,5 +1,5 @@
 import { ToggleComponent } from "obsidian";
-import { ExtendedGraphSettingTab, Feature, GraphType, graphTypeLabels, makeCompatibleForClass, ExtendedGraphInstances, SettingsSection } from "../internal";
+import { ExtendedGraphSettingTab, Feature, GraphType, graphTypeLabels, makeCompatibleForClass, ExtendedGraphInstances, SettingsSection, t } from "../internal";
 
 
 export abstract class SettingsSectionPerGraphType extends SettingsSection {
@@ -30,7 +30,7 @@ export abstract class SettingsSectionPerGraphType extends SettingsSection {
         }
         const toggle = this.settingHeader.controlEl.createDiv();
         toggle.addClass("toggle-labelled");
-        toggle.insertAdjacentText("afterbegin", graphTypeLabels[graphType])
+        toggle.insertAdjacentText("afterbegin", t(graphTypeLabels[graphType]))
         new ToggleComponent(toggle)
             .setValue(enable)
             .onChange(value => {

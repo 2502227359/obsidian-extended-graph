@@ -55,7 +55,7 @@ export class SettingPropertiesArray extends SettingsSectionPerGraphType {
 
     protected openModalToAddInteractive() {
         const modal = new AddPropertyInteractiveModal(
-            "Property key",
+            t("controls.propertyKey"),
             this.addProperty.bind(this)
         );
         modal.open();
