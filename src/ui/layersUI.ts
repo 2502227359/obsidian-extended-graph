@@ -1,5 +1,5 @@
 import { Component, ExtraButtonComponent } from "obsidian";
-import { LayerGroup } from "../internal";
+import { LayerGroup, t } from "../internal";
 import { GraphInstances } from "../pluginInstances";
 
 export class LayersUI extends Component {
@@ -39,6 +39,7 @@ export class LayersUI extends Component {
     private addToggleButton() {
         this.toggleButton = new ExtraButtonComponent(this.root);
         this.toggleButton.setIcon("layers");
+        this.toggleButton.setTooltip(t("features.layersTooltip"));
         this.toggleButton.onClick(() => {
             if (this.instances.layersManager?.isEnabled) {
                 this.instances.layersManager.disable();
@@ -140,15 +141,17 @@ export class LayersUI extends Component {
     open() {
         this.root.removeClass("is-closed");
         this.toggleButton.extraSettingsEl.addClass("is-active");
-        this.levelsArea.show();
-        this.activeLayersBorder?.show();
+        // Class toggling (instead of show()/hide()) lets CSS fade the levels in
+        // and out while still taking the element out of layout when closed.
+        this.levelsArea.removeClass("is-closed-layers");
+        this.activeLayersBorder?.removeClass("is-closed-layers");
     }
 
     close() {
         this.root.addClass("is-closed");
         this.toggleButton.extraSettingsEl.removeClass("is-active");
-        this.levelsArea.hide();
-        this.activeLayersBorder?.hide();
+        this.levelsArea.addClass("is-closed-layers");
+        this.activeLayersBorder?.addClass("is-closed-layers");
     }
 
     onunload(): void {

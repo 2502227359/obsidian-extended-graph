@@ -68,6 +68,11 @@ export class RadialMenu extends Menu {
             this.showNestedMenu(item);
         } else if (item.onClick) {
             item.onClick();
+        } else if (item.onMouseEnter) {
+            // Hover-only sectors (links/folders/tags/property values) highlight the
+            // related elements; clicking re-triggers that highlight, which also
+            // makes them reachable on touch devices.
+            item.onMouseEnter();
         }
     }
 
@@ -105,15 +110,23 @@ export class RadialMenu extends Menu {
         const onMouseEnter = this.onMouseEnter.bind(this);
         const onMouseLeave = this.onMouseLeave.bind(this);
 
+        // Sectors are 45° wedges; with more items than fit in a circle the step
+        // shrinks so wedges never overlap (the wedge itself follows via
+        // --sector-ratio in the clip-path).
+        const count = items.length;
+        const step = Math.min(45, 360 / count);
+        const sectorRatio = Math.tan(step * Math.PI / 180);
+
         for (let i = 0; i < items.length; ++i) {
             const currentItem = items[i];
             this.addItem((item) => {
                 const darkInterp = textColor(this.menuManager.instances.cssBridge.getThemeColor(currentItem.color), "dark", "light") === "dark" ? "100%" : "0%";
                 item.dom.style.setProperty("--dark-text-interp", darkInterp);
                 item.dom.style.setProperty("--color-rgb", `var(--color-${currentItem.color}-rgb)`);
-                item.dom.style.setProperty("--rotation", `${-22.5 + (i - 1) * 45}deg`);
+                item.dom.style.setProperty("--sector-ratio", sectorRatio.toFixed(4));
+                item.dom.style.setProperty("--rotation", `${((i - (count - 1) / 2) * step).toFixed(2)}deg`);
 
-                item.setTitle(currentItem.title.slice(0, Math.min(3, currentItem.title.length)).toUpperCase())
+                item.setTitle(currentItem.title)
                     .setIcon(currentItem.icon)
                     .onClick(() => {
                         onClick(currentItem);
@@ -144,6 +157,11 @@ export class RadialMenu extends Menu {
         const onClickCenter = this.onClickCenter.bind(this);
         this.addItem((item) => {
             item.dom.addClass("back");
+            // The title is hidden by CSS when an icon is present, but it still
+            // provides the aria-label; the hover tooltip uses the same text.
+            const label = this.parentMenu ? t("controls.back") : t("controls.cancel");
+            item.setTitle(label);
+            item.dom.setAttribute("aria-label", label);
             if (this.level > 0) {
                 item.setIcon("undo-2");
             }
@@ -151,6 +169,22 @@ export class RadialMenu extends Menu {
                 item.setIcon("x");
             }
             item.onClick(onClickCenter);
+            this.attachTooltip(item.dom, label);
+        });
+    }
+
+    /** Hover tooltip reusing the same mechanism as the sector items. */
+    private attachTooltip(dom: HTMLElement, text: string): void {
+        dom.addEventListener('mouseenter', (event) => {
+            const tooltip = createDiv("tooltip extended-graph-tooltip");
+            tooltip.setText(text);
+            this.dom.doc.body.appendChild(tooltip);
+            const bbox = dom.getBoundingClientRect();
+            tooltip.style.left = `${bbox.left + bbox.width * 0.5 + 10}px`;
+            tooltip.style.top = `${(event as MouseEvent).clientY + 10}px`;
+        });
+        dom.addEventListener('mouseleave', () => {
+            this.dom.doc.body.querySelectorAll(".tooltip.extended-graph-tooltip").forEach(el => el.detach());
         });
     }
 

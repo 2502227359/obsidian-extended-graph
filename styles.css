@@ -14,6 +14,15 @@ body {
     box-shadow: var(--shadow-s);
     border-radius: var(--radius-m);
 
+    /* Fade open/close instead of hard display flips; needs allow-discrete
+       (Chromium 117+), degrades to an instant toggle otherwise. */
+    opacity: 1;
+    transition: opacity 0.15s ease, display 0.15s allow-discrete;
+
+    @starting-style {
+        opacity: 0;
+    }
+
     &:hover {
         --ext-graph-background-container-opacity: 1;
     }
@@ -47,6 +56,7 @@ body {
 
     &.is-closed {
         display: none;
+        opacity: 0;
     }
 
     .setting-item {
@@ -303,6 +313,7 @@ body {
 
 .graph-states-container.is-closed {
     display: none;
+    opacity: 0;
 }
 
 
@@ -331,6 +342,17 @@ body {
         align-items: stretch;
         text-align: center;
         margin-block: var(--size-2-2);
+        opacity: 1;
+        transition: opacity 0.15s ease, display 0.15s allow-discrete;
+
+        @starting-style {
+            opacity: 0;
+        }
+
+        &.is-closed-layers {
+            display: none;
+            opacity: 0;
+        }
     }
 
     .layers>* {
@@ -349,6 +371,12 @@ body {
         border: 1px solid var(--background-modifier-border);
         border-radius: var(--radius-s);
         flex-shrink: 0;
+        cursor: pointer;
+    }
+
+    .layer-level:hover {
+        background-color: var(--background-modifier-hover);
+        border-color: var(--background-modifier-border-hover);
     }
 
     .layer-labels {
@@ -385,7 +413,17 @@ body {
         inset-inline: var(--size-2-2);
         border: 2px solid var(--color-accent);
         border-radius: var(--radius-m);
-        transition: top 0.1s ease-out, bottom 0.1s ease-out;
+        opacity: 1;
+        transition: top 0.1s ease-out, bottom 0.1s ease-out, opacity 0.15s ease, display 0.15s allow-discrete;
+
+        @starting-style {
+            opacity: 0;
+        }
+
+        &.is-closed-layers {
+            display: none;
+            opacity: 0;
+        }
     }
 }
 
@@ -1312,7 +1350,7 @@ svg.shape-svg {
                 rgb(var(--color-rgb), 0.5) 51.5%,
                 transparent 51.75%,
                 transparent);
-        clip-path: polygon(0 0, 0 99%, 99% 0);
+        clip-path: polygon(0 0, 0 99%, calc(var(--sector-ratio, 1) * 99%) 0);
         transform: rotate(var(--rotation));
 
         .menu-item-icon,
@@ -1329,6 +1367,10 @@ svg.shape-svg {
 
         .menu-item-title {
             left: 10%;
+            max-width: 60%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     }
 
