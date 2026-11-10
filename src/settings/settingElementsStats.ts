@@ -15,7 +15,8 @@ import {
     SettingsSectionPerGraphType,
     setupNumberInput,
     t,
-    GraphStatsDirection
+    GraphStatsDirection,
+    UIElements
 } from "../internal";
 import { SettingMultiPropertiesModal } from "../ui/modals/settingPropertiesModal";
 
@@ -60,18 +61,20 @@ export class SettingElementsStats extends SettingsSectionPerGraphType {
     private addNodeSizeProperties(): void {
         const setting = new Setting(this.settingTab.containerEl)
             .setName(t("features.nodeSizeProperties"))
-            .setDesc(t("features.nodeSizePropertiesDesc"))
-            .addExtraButton(cb => {
-                cb.setIcon('mouse-pointer-click');
-                cb.onClick(() => {
-                    const modal = new SettingMultiPropertiesModal(
-                        t("features.nodeSizeProperties"),
-                        t("features.nodeSizePropertiesAdd"),
-                        ExtendedGraphInstances.settings.nodesSizeProperties
-                    );
-                    modal.open();
-                })
-            });
+            .setDesc(t("features.nodeSizePropertiesDesc"));
+        const refreshSummary = UIElements.setupListSummary(setting, () => ExtendedGraphInstances.settings.nodesSizeProperties);
+        setting.addExtraButton(cb => {
+            UIElements.setupExtraButton(cb, 'edit');
+            cb.onClick(() => {
+                const modal = new SettingMultiPropertiesModal(
+                    t("features.nodeSizeProperties"),
+                    t("features.nodeSizePropertiesAdd"),
+                    ExtendedGraphInstances.settings.nodesSizeProperties,
+                    refreshSummary
+                );
+                modal.open();
+            })
+        });
 
         this.elementsBody.push(setting.settingEl);
     }

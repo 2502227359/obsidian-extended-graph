@@ -762,6 +762,29 @@ body {
         width: 100%;
     }
 
+    /* Non-collapsible group label between section headers */
+    .settings-group-header {
+        margin-top: 1.25em;
+        padding-inline: 0.25em;
+        color: var(--text-faint);
+        font-size: var(--font-ui-small);
+        font-variant: small-caps;
+        letter-spacing: 0.04em;
+    }
+
+    .settings-group-header:first-of-type {
+        margin-top: 0.5em;
+    }
+
+    /* Current values of a list-type setting, shown under its description */
+    .setting-list-summary {
+        color: var(--text-muted);
+        font-size: var(--font-ui-smaller);
+        line-height: var(--line-height-tight);
+        padding-top: 0.25em;
+        overflow-wrap: anywhere;
+    }
+
 
     .color-palette canvas {
         border-radius: var(--radius-s);

@@ -22,21 +22,23 @@ export class SettingLayers extends SettingsSectionPerGraphType {
     }
 
     private addProperties() {
-        this.elementsBody.push(new Setting(this.settingTab.containerEl)
+        const setting = new Setting(this.settingTab.containerEl)
             .setName(t("features.layerProperties"))
-            .setDesc(t("features.layerPropertiesDesc"))
-            .addExtraButton(cb => {
-                cb.setIcon('mouse-pointer-click');
-                cb.onClick(() => {
-                    const modal = new SettingMultiPropertiesModal(
-                        t("features.layerProperties"),
-                        t("features.layerPropertiesAdd"),
-                        ExtendedGraphInstances.settings.layerProperties
-                    );
-                    modal.open();
-                })
-            }
-            ).settingEl);
+            .setDesc(t("features.layerPropertiesDesc"));
+        const refreshSummary = UIElements.setupListSummary(setting, () => ExtendedGraphInstances.settings.layerProperties);
+        setting.addExtraButton(cb => {
+            UIElements.setupExtraButton(cb, 'edit');
+            cb.onClick(() => {
+                const modal = new SettingMultiPropertiesModal(
+                    t("features.layerProperties"),
+                    t("features.layerPropertiesAdd"),
+                    ExtendedGraphInstances.settings.layerProperties,
+                    refreshSummary
+                );
+                modal.open();
+            })
+        });
+        this.elementsBody.push(setting.settingEl);
     }
 
     private addNumberOfActiveLayers() {

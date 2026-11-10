@@ -1,5 +1,5 @@
 import { Setting } from "obsidian";
-import { ExtendedGraphSettingTab, ExtendedGraphInstances, SettingsSectionPerGraphType, t } from "../internal";
+import { ExtendedGraphSettingTab, ExtendedGraphInstances, SettingsSectionPerGraphType, t, UIElements } from "../internal";
 import { SettingMultiPropertiesModal } from "../ui/modals/settingPropertiesModal";
 
 export class SettingNames extends SettingsSectionPerGraphType {
@@ -76,21 +76,23 @@ export class SettingNames extends SettingsSectionPerGraphType {
     }
 
     private addUseProperty() {
-        this.elementsBody.push(new Setting(this.settingTab.containerEl)
+        const setting = new Setting(this.settingTab.containerEl)
             .setName(t("features.namesUseProperties"))
-            .setDesc(t("features.namesUsePropertiesDesc"))
-            .addExtraButton(cb => {
-                cb.setIcon('mouse-pointer-click');
-                cb.onClick(() => {
-                    const modal = new SettingMultiPropertiesModal(
-                        t("features.namesUseProperties"),
-                        t("features.namesUsePropertiesAdd"),
-                        ExtendedGraphInstances.settings.usePropertiesForName
-                    );
-                    modal.open();
-                })
-            }
-            ).settingEl);
+            .setDesc(t("features.namesUsePropertiesDesc"));
+        const refreshSummary = UIElements.setupListSummary(setting, () => ExtendedGraphInstances.settings.usePropertiesForName);
+        setting.addExtraButton(cb => {
+            UIElements.setupExtraButton(cb, 'edit');
+            cb.onClick(() => {
+                const modal = new SettingMultiPropertiesModal(
+                    t("features.namesUseProperties"),
+                    t("features.namesUsePropertiesAdd"),
+                    ExtendedGraphInstances.settings.usePropertiesForName,
+                    refreshSummary
+                );
+                modal.open();
+            })
+        });
+        this.elementsBody.push(setting.settingEl);
     }
 
     private addBackground() {

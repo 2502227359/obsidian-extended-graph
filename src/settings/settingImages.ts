@@ -1,5 +1,5 @@
 import { Setting } from "obsidian";
-import { ExtendedGraphSettingTab, FeatureSetting, ExtendedGraphInstances, SettingsSection, t } from "../internal";
+import { ExtendedGraphSettingTab, FeatureSetting, ExtendedGraphInstances, SettingsSection, t, UIElements } from "../internal";
 import { SettingMultiPropertiesModal } from "../ui/modals/settingPropertiesModal";
 
 export class SettingImages extends SettingsSection {
@@ -24,21 +24,23 @@ export class SettingImages extends SettingsSection {
         ).settingEl);
 
 
-        this.elementsBody.push(new Setting(this.settingTab.containerEl)
+        const setting = new Setting(this.settingTab.containerEl)
             .setName(t("features.imageProperties"))
-            .setDesc(t("features.imagePropertiesDesc"))
-            .addExtraButton(cb => {
-                cb.setIcon('mouse-pointer-click');
-                cb.onClick(() => {
-                    const modal = new SettingMultiPropertiesModal(
-                        t("features.imageProperties"),
-                        t("features.imagePropertiesAdd"),
-                        ExtendedGraphInstances.settings.imageProperties
-                    );
-                    modal.open();
-                })
-            }
-            ).settingEl);
+            .setDesc(t("features.imagePropertiesDesc"));
+        const refreshSummary = UIElements.setupListSummary(setting, () => ExtendedGraphInstances.settings.imageProperties);
+        setting.addExtraButton(cb => {
+            UIElements.setupExtraButton(cb, 'edit');
+            cb.onClick(() => {
+                const modal = new SettingMultiPropertiesModal(
+                    t("features.imageProperties"),
+                    t("features.imagePropertiesAdd"),
+                    ExtendedGraphInstances.settings.imageProperties,
+                    refreshSummary
+                );
+                modal.open();
+            })
+        });
+        this.elementsBody.push(setting.settingEl);
     }
 
     private addImagesFromEmbeds() {

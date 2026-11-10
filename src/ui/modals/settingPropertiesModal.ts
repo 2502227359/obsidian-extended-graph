@@ -6,11 +6,13 @@ export class SettingMultiPropertiesModal extends Modal {
     propertiesDiv: HTMLDivElement;
     properties: string[];
     addText: string;
+    private onMutate?: () => void;
 
-    constructor(title: string, addText: string, properties: string[]) {
+    constructor(title: string, addText: string, properties: string[], onMutate?: () => void) {
         super(ExtendedGraphInstances.app);
         this.properties = properties;
         this.addText = addText;
+        this.onMutate = onMutate;
         this.setTitle(title);
         this.modalEl.addClass("graph-modal-setting-properties");
     }
@@ -92,6 +94,7 @@ export class SettingMultiPropertiesModal extends Modal {
         this.inputs.remove(input);
         inputDiv.remove();
         ExtendedGraphInstances.plugin.saveSettings();
+        this.onMutate?.();
     }
 
     private renamePropertyAt(index: number, newKey: string): boolean {
@@ -101,6 +104,7 @@ export class SettingMultiPropertiesModal extends Modal {
             // Replace in place: renaming must not reorder the list nor touch a sibling duplicate
             this.properties[index] = newKey;
             ExtendedGraphInstances.plugin.saveSettings();
+            this.onMutate?.();
             return true;
         }
         return false;

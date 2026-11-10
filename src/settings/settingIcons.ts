@@ -1,5 +1,5 @@
 import { Setting } from "obsidian";
-import { ExtendedGraphSettingTab, ExtendedGraphInstances, SettingsSectionPerGraphType, setupNumberInput, t } from "../internal";
+import { ExtendedGraphSettingTab, ExtendedGraphInstances, SettingsSectionPerGraphType, setupNumberInput, t, UIElements } from "../internal";
 import { SettingMultiPropertiesModal } from "../ui/modals/settingPropertiesModal";
 
 export class SettingIcons extends SettingsSectionPerGraphType {
@@ -21,23 +21,23 @@ export class SettingIcons extends SettingsSectionPerGraphType {
     }
 
     private addProperty(): void {
-        this.elementsBody.push(
-            new Setting(this.settingTab.containerEl)
-                .setName(t("features.iconProperties"))
-                .setDesc(t("features.iconPropertiesDesc"))
-                .addExtraButton(cb => {
-                    cb.setIcon('mouse-pointer-click');
-                    cb.onClick(() => {
-                        const modal = new SettingMultiPropertiesModal(
-                            t("features.iconProperties"),
-                            t("features.iconPropertiesAdd"),
-                            ExtendedGraphInstances.settings.iconProperties
-                        );
-                        modal.open();
-                    })
-                }
-                ).settingEl
-        );
+        const setting = new Setting(this.settingTab.containerEl)
+            .setName(t("features.iconProperties"))
+            .setDesc(t("features.iconPropertiesDesc"));
+        const refreshSummary = UIElements.setupListSummary(setting, () => ExtendedGraphInstances.settings.iconProperties);
+        setting.addExtraButton(cb => {
+            UIElements.setupExtraButton(cb, 'edit');
+            cb.onClick(() => {
+                const modal = new SettingMultiPropertiesModal(
+                    t("features.iconProperties"),
+                    t("features.iconPropertiesAdd"),
+                    ExtendedGraphInstances.settings.iconProperties,
+                    refreshSummary
+                );
+                modal.open();
+            })
+        });
+        this.elementsBody.push(setting.settingEl);
     }
 
     private addSupportForPlugins(): void {

@@ -1,6 +1,9 @@
 import { ExtraButtonComponent, setIcon, Setting } from "obsidian";
 import { ExtendedGraphSettingTab, ExtendedGraphInstances, t } from "../internal";
 
+/** Sections that start expanded when the user has never collapsed them. */
+const DEFAULT_EXPANDED_SECTIONS = new Set(["tags", "display"]);
+
 export abstract class SettingsSection {
     settingTab: ExtendedGraphSettingTab;
     containerEl: HTMLElement;
@@ -34,9 +37,16 @@ export abstract class SettingsSection {
         this.addBody();
         this.addToNav();
 
-        if (this.id != 'property-key' && (!(this.id in ExtendedGraphInstances.settings.collapsedSettings) || ExtendedGraphInstances.settings.collapsedSettings[this.id])) {
-            // Initial render: apply the collapsed state without persisting
-            this.collapse(false);
+        if (this.id != 'property-key') {
+            // Sections the user never touched keep a friendly default; the
+            // rest of the wall of gray headers stays collapsed.
+            const stored = this.id in ExtendedGraphInstances.settings.collapsedSettings
+                ? ExtendedGraphInstances.settings.collapsedSettings[this.id]
+                : !DEFAULT_EXPANDED_SECTIONS.has(this.id);
+            if (stored) {
+                // Initial render: apply the collapsed state without persisting
+                this.collapse(false);
+            }
         }
 
         this.elementsBody.forEach(el => {

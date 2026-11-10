@@ -8,6 +8,7 @@ export class SettingDisplay extends SettingsSection {
     }
 
     protected override addBody() {
+        this.addDisableNodes();
         this.addBorderUnresolved();
         this.addLinkSameColorAsNodes();
         this.addNoLineHighlight();
@@ -21,6 +22,20 @@ export class SettingDisplay extends SettingsSection {
         this.addShowPinIcon();
     }
 
+
+    /** Was a standalone row floating between the nav and the first section. */
+    private addDisableNodes() {
+        this.elementsBody.push(new Setting(this.containerEl)
+            .setName(t("features.disableNodes"))
+            .setDesc(t("features.disableNodesDesc"))
+            .addToggle(cb => {
+                cb.setValue(!ExtendedGraphInstances.settings.fadeOnDisable);
+                cb.onChange(value => {
+                    ExtendedGraphInstances.settings.fadeOnDisable = !value;
+                    ExtendedGraphInstances.plugin.saveSettings();
+                })
+            }).settingEl);
+    }
 
     private addBorderUnresolved() {
         this.elementsBody.push(new Setting(this.containerEl)

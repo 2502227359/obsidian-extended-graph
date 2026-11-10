@@ -1,4 +1,4 @@
-import { ButtonComponent, ExtraButtonComponent } from "obsidian";
+import { ButtonComponent, ExtraButtonComponent, Setting } from "obsidian";
 import { t } from "../internal";
 
 const BUTTON_DELETE_CLASS: string = "extended-graph-delete-button";
@@ -57,5 +57,20 @@ export class UIElements {
             default:
                 break;
         }
+    }
+
+    /**
+     * Shows the current values of a list-type setting under its description, so
+     * users can see what is configured without opening the modal. Returns a
+     * refresh function to call when the list changes.
+     */
+    static setupListSummary(setting: Setting, getValues: () => string[]): () => void {
+        const el = setting.descEl.createDiv({ cls: "setting-list-summary" });
+        const refresh = () => {
+            const values = getValues().filter(v => v !== "");
+            el.setText(values.length > 0 ? values.join(", ") : t("settings.notSet"));
+        };
+        refresh();
+        return refresh;
     }
 }

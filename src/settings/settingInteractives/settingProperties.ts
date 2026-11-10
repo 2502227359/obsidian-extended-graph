@@ -44,6 +44,21 @@ export class SettingPropertiesArray extends SettingsSectionPerGraphType {
     }
 
     protected override addBody() {
+        // Dataview name normalization affects every property interactive below:
+        // it used to float as a standalone row at the top of the settings tab.
+        if (getDataviewPlugin()) {
+            this.elementsBody.push(new Setting(this.containerEl)
+                .setName(t("features.canonicalizePropertiesWithDataview"))
+                .setDesc(t("features.canonicalizePropertiesWithDataviewDesc"))
+                .addToggle(cb => {
+                    cb.setValue(ExtendedGraphInstances.settings.canonicalizePropertiesWithDataview);
+                    cb.onChange(value => {
+                        ExtendedGraphInstances.settings.canonicalizePropertiesWithDataview = value;
+                        ExtendedGraphInstances.plugin.saveSettings();
+                    })
+                }).settingEl);
+        }
+
         this.propertiesContainer = this.settingTab.containerEl.createDiv("setting-item settings-properties-container");
         this.elementsBody.push(this.propertiesContainer);
 

@@ -1,5 +1,5 @@
 import { Setting } from "obsidian";
-import { ExtendedGraphSettingTab, ExternalLinkOption, ExtendedGraphInstances, SettingMultiPropertiesModal, SettingsSection, t, ExternalLinkOpenMode } from "../internal";
+import { ExtendedGraphSettingTab, ExternalLinkOption, ExtendedGraphInstances, SettingMultiPropertiesModal, SettingsSection, t, ExternalLinkOpenMode, UIElements } from "../internal";
 
 export class SettingBeta extends SettingsSection {
 
@@ -46,21 +46,23 @@ export class SettingBeta extends SettingsSection {
                 })
             }).settingEl);
 
-        this.elementsBody.push(new Setting(this.settingTab.containerEl)
+        const propertiesSetting = new Setting(this.settingTab.containerEl)
             .setName(t("features.externalLinksProperties"))
-            .setDesc(t("features.externalLinksPropertiesDesc"))
-            .addExtraButton(cb => {
-                cb.setIcon('mouse-pointer-click');
-                cb.onClick(() => {
-                    const modal = new SettingMultiPropertiesModal(
-                        t("features.externalLinksProperties"),
-                        t("features.externalLinksPropertiesAdd"),
-                        ExtendedGraphInstances.settings.externalLinksProperties
-                    );
-                    modal.open();
-                })
-            }
-            ).settingEl);
+            .setDesc(t("features.externalLinksPropertiesDesc"));
+        const refreshSummary = UIElements.setupListSummary(propertiesSetting, () => ExtendedGraphInstances.settings.externalLinksProperties);
+        propertiesSetting.addExtraButton(cb => {
+            UIElements.setupExtraButton(cb, 'edit');
+            cb.onClick(() => {
+                const modal = new SettingMultiPropertiesModal(
+                    t("features.externalLinksProperties"),
+                    t("features.externalLinksPropertiesAdd"),
+                    ExtendedGraphInstances.settings.externalLinksProperties,
+                    refreshSummary
+                );
+                modal.open();
+            })
+        });
+        this.elementsBody.push(propertiesSetting.settingEl);
 
         this.elementsBody.push(new Setting(this.containerEl)
             .setName(t("features.externalLinksOpenMode"))

@@ -521,6 +521,14 @@
         },
         "viewMatches": "Voire les correspondances"
     },
+    "settings": {
+        "groupNodeEnhancement": "Améliorations des nœuds",
+        "groupVisual": "Visuel & statistiques",
+        "groupInteraction": "Interaction",
+        "groupGlobal": "Options générales",
+        "groupAdvanced": "Performance & expérimental",
+        "notSet": "Non défini"
+    },
     "states": {
         "defaultState": "État par défaut",
         "deleteConfirmTitle": "Supprimer l'état",

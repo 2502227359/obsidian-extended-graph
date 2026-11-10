@@ -103,7 +103,7 @@
         "ids": {
             "arrows": "箭头",
             "automation": "自动化",
-            "beta": "beta",
+            "beta": "Beta",
             "display": "显示",
             "elementsStats": "统计",
             "filter": "过滤器",
@@ -520,6 +520,14 @@
             "path": "路径"
         },
         "viewMatches": "查看匹配项"
+    },
+    "settings": {
+        "groupNodeEnhancement": "节点增强",
+        "groupVisual": "视觉与统计",
+        "groupInteraction": "交互",
+        "groupGlobal": "全局选项",
+        "groupAdvanced": "性能与实验",
+        "notSet": "未配置"
     },
     "states": {
         "defaultState": "默认状态",

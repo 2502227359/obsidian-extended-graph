@@ -27,11 +27,34 @@ import {
     t,
     SettingInput as SettingInputs,
     SettingLayers,
-    getDataviewPlugin,
     validateFilename,
     SettingLocal as SettingLocalGraph
 } from "../internal";
 import ExtendedGraphPlugin from "../main";
+
+/** Section id → group heading key; sections sharing a key render under one header. */
+const SECTION_GROUPS: Record<string, string> = {
+    tags: "settings.groupNodeEnhancement",
+    properties: "settings.groupNodeEnhancement",
+    links: "settings.groupNodeEnhancement",
+    folders: "settings.groupNodeEnhancement",
+    images: "settings.groupNodeEnhancement",
+    icons: "settings.groupNodeEnhancement",
+    shapes: "settings.groupNodeEnhancement",
+    arrows: "settings.groupVisual",
+    layers: "settings.groupVisual",
+    "elements-stats": "settings.groupVisual",
+    names: "settings.groupVisual",
+    focus: "settings.groupInteraction",
+    zoom: "settings.groupInteraction",
+    inputs: "settings.groupInteraction",
+    display: "settings.groupGlobal",
+    filter: "settings.groupGlobal",
+    "local-graph": "settings.groupGlobal",
+    automation: "settings.groupGlobal",
+    performances: "settings.groupAdvanced",
+    beta: "settings.groupAdvanced",
+};
 
 export class ExtendedGraphSettingTab extends PluginSettingTab {
     sections: SettingsSection[] = [];
@@ -60,24 +83,26 @@ export class ExtendedGraphSettingTab extends PluginSettingTab {
             settingLocalGraph
         )
 
-        this.sections.push(new SettingAutomation(this));
+        // Render order = grouping in the tab (see SECTION_GROUPS): node
+        // enhancements first, then visual, interaction, global, advanced.
         this.sections.push(settingsTags);
         this.sections.push(settingsProperties);
         this.sections.push(settingLinks);
-        this.sections.push(new SettingArrows(this));
         this.sections.push(settingFolders);
         this.sections.push(new SettingImages(this));
         this.sections.push(new SettingIcons(this));
-        this.sections.push(new SettingFocus(this));
         this.sections.push(new SettingShapes(this));
+        this.sections.push(new SettingArrows(this));
         this.sections.push(new SettingLayers(this));
         this.sections.push(settingElementsStats);
         this.sections.push(new SettingNames(this));
+        this.sections.push(new SettingFocus(this));
         this.sections.push(new SettingZoom(this));
-        this.sections.push(settingLocalGraph);
+        this.sections.push(new SettingInputs(this));
         this.sections.push(new SettingDisplay(this));
         this.sections.push(new SettingFilter(this));
-        this.sections.push(new SettingInputs(this));
+        this.sections.push(settingLocalGraph);
+        this.sections.push(new SettingAutomation(this));
         this.sections.push(new SettingPerformance(this));
         this.sections.push(new SettingBeta(this));
     }
@@ -89,11 +114,15 @@ export class ExtendedGraphSettingTab extends PluginSettingTab {
 
         this.addImportExport();
         this.addNav();
-        this.addDisableNodes();
-        this.addCanonicalPropertiesWithDataview();
 
-        // FEATURES
+        // FEATURES, with non-collapsible group headers between them
+        let lastGroup = "";
         for (const section of this.sections) {
+            const group = SECTION_GROUPS[section.id];
+            if (group && group !== lastGroup) {
+                this.containerEl.createDiv({ cls: "settings-group-header", text: t(group) });
+            }
+            lastGroup = group;
             section.display();
         }
     }
@@ -151,34 +180,6 @@ export class ExtendedGraphSettingTab extends PluginSettingTab {
 
         const label = nav.createDiv({ cls: "nav-label" });
         label.innerText = t("controls.goTo");
-    }
-
-    private addDisableNodes() {
-        new Setting(this.containerEl)
-            .setName(t("features.disableNodes"))
-            .setDesc(t("features.disableNodesDesc"))
-            .addToggle(cb => {
-                cb.setValue(!ExtendedGraphInstances.settings.fadeOnDisable);
-                cb.onChange(value => {
-                    ExtendedGraphInstances.settings.fadeOnDisable = !value;
-                    ExtendedGraphInstances.plugin.saveSettings();
-                })
-            });
-    }
-
-    private addCanonicalPropertiesWithDataview() {
-        if (getDataviewPlugin()) {
-            new Setting(this.containerEl)
-                .setName(t("features.canonicalizePropertiesWithDataview"))
-                .setDesc(t("features.canonicalizePropertiesWithDataviewDesc"))
-                .addToggle(cb => {
-                    cb.setValue(ExtendedGraphInstances.settings.canonicalizePropertiesWithDataview);
-                    cb.onChange(value => {
-                        ExtendedGraphInstances.settings.canonicalizePropertiesWithDataview = value;
-                        ExtendedGraphInstances.plugin.saveSettings();
-                    })
-                });
-        }
     }
 
     override hide(): void {

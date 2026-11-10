@@ -103,7 +103,7 @@
         "ids": {
             "arrows": "arrows",
             "automation": "automation",
-            "beta": "beta",
+            "beta": "Beta",
             "display": "display",
             "elementsStats": "stats",
             "filter": "filter",
@@ -520,6 +520,14 @@
             "path": "Path"
         },
         "viewMatches": "View matches"
+    },
+    "settings": {
+        "groupNodeEnhancement": "Node enhancements",
+        "groupVisual": "Visual & stats",
+        "groupInteraction": "Interaction",
+        "groupGlobal": "Global options",
+        "groupAdvanced": "Performance & experiments",
+        "notSet": "Not set"
     },
     "states": {
         "defaultState": "Default state",
