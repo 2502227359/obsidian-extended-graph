@@ -85,6 +85,7 @@ export async function branchesHit(plugin) {
         assert.equal(leaf.view.contentEl.querySelector('.eg-relations-panel').dataset.neighbor, files[2].path);
         leaf.view.contentEl.querySelector('.eg-relations-close').click();
         canvas.dispatchEvent(new PointerEvent('pointerdown', { ...coords, button: 0 }));
+        canvas.dispatchEvent(new PointerEvent('pointerup', { ...coords, button: 0 }));
         await waitFor(() => plugin.app.workspace.getLeavesOfType('markdown').some(item => !originalLeaves.has(item.id) && item.view.file?.path === files[2].path), '点击主图临时节点应打开笔记而不是开始拖图');
     } finally {
         leaf.detach();
@@ -171,6 +172,9 @@ export async function branchesHover(plugin) {
         const controls = leaf.view.contentEl.querySelector('.graph-controls');
         if (!controls.classList.contains('is-close')) controls.querySelector('.mod-close')?.click();
         assert.ok(toggle.getBoundingClientRect().width > 0, '收起设置后开关仍应可见');
+        assert.equal(toggle.textContent.trim(), '', '悬浮关联开关应只显示图标');
+        assert.ok(toggle.querySelector('svg'), '图标开关应保留网络图标');
+        assert.ok(toggle.getAttribute('aria-label').includes('悬浮关联'), '图标开关仍应有可访问提示');
         assert.equal(toggle.getAttribute('aria-pressed'), 'false');
         const before = leaf.view.renderer.nodes.map(node => node.id).sort();
         toggle.click();
@@ -201,6 +205,102 @@ export async function branchesHover(plugin) {
         leaf.detach();
         for (const file of files) if (app.vault.getAbstractFileByPath(file.path)) await app.vault.delete(file);
     }
+}
+
+export async function branchesDrag(plugin) {
+    const files = await createFixture(plugin.app);
+    const leaf = await openFixture(plugin, files);
+    const before = new Set(plugin.app.workspace.getLeavesOfType('markdown').map(item => item.id));
+    try {
+        const renderer = leaf.view.renderer, canvas = renderer.interactiveEl;
+        leaf.view.contentEl.querySelector('.eg-hover-branches-toggle').click();
+        renderer.onNodeHover(new MouseEvent('mousemove', { clientX: 500, clientY: 350 }), files[1].path, '');
+        await waitFor(() => renderer.hanger.children.find(child => child.name === 'eg-branch-layer')?.alpha > 0.9, '拖动前预览应显示');
+        const core = renderer.nodes.find(node => node.id === files[1].path);
+        const point = core.circle.getGlobalPosition(), bounds = canvas.getBoundingClientRect(), screen = renderer.px.renderer.screen;
+        const coords = { clientX: bounds.left + point.x * bounds.width / screen.width, clientY: bounds.top + point.y * bounds.height / screen.height, bubbles: true, cancelable: true, pointerType: 'mouse', pointerId: 1, button: 0 };
+        assertNativeDrag(renderer, core, coords);
+        assert.equal(plugin.app.workspace.getLeavesOfType('markdown').some(item => !before.has(item.id)), false, '拖动正式节点不能打开笔记');
+        await assertGhostDrag(plugin, leaf, files, before);
+    } finally {
+        leaf.detach();
+        for (const item of plugin.app.workspace.getLeavesOfType('markdown')) if (!before.has(item.id)) item.detach();
+        for (const file of files) if (plugin.app.vault.getAbstractFileByPath(file.path)) await plugin.app.vault.delete(file);
+    }
+}
+
+function assertNativeDrag(renderer, core, coords) {
+    const canvas = renderer.interactiveEl, originalCapture = canvas.setPointerCapture;
+    // 合成事件没有浏览器活动指针，仅模拟捕获能力；拖动和点击判断仍执行宿主正式事件。
+    canvas.setPointerCapture = pointerId => assert.equal(pointerId, coords.pointerId);
+    try {
+        const down = new PointerEvent('pointerdown', { ...coords, buttons: 1 });
+        canvas.dispatchEvent(down);
+        assert.equal(down.defaultPrevented, false, '临时边端点不能抢走正式节点的原生拖动');
+        assert.equal(renderer.dragNode, core, '按住正式节点应进入宿主拖动');
+        canvas.dispatchEvent(new PointerEvent('pointermove', { ...coords, buttons: 1, clientX: coords.clientX + 50 }));
+        assert.ok(Number.isFinite(core.fx) && Number.isFinite(core.fy), '原生移动事件应真正更新节点拖动坐标');
+        canvas.dispatchEvent(new PointerEvent('pointerup', { ...coords, clientX: coords.clientX + 50 }));
+    } finally {
+        canvas.setPointerCapture = originalCapture;
+    }
+}
+
+async function ghostPointer(leaf, files) {
+    const renderer = leaf.view.renderer;
+    renderer.onNodeHover(new MouseEvent('mousemove', { clientX: 500, clientY: 350 }), files[1].path, '');
+    await waitFor(() => renderer.hanger.children.find(child => child.name === 'eg-branch-layer')?.alpha > 0.9, '临时节点应完成淡入');
+    const layer = renderer.hanger.children.find(child => child.name === 'eg-branch-layer');
+    const ghost = layer.children.find(child => child.name === `eg-branch-node:${files[2].path}`);
+    const point = ghost.getGlobalPosition(), bounds = renderer.interactiveEl.getBoundingClientRect(), screen = renderer.px.renderer.screen;
+    return { ghost, coords: { clientX: bounds.left + point.x * bounds.width / screen.width, clientY: bounds.top + point.y * bounds.height / screen.height, bubbles: true, cancelable: true, pointerType: 'mouse', pointerId: 1, button: 0 } };
+}
+
+async function assertGhostDrag(plugin, leaf, files, before) {
+    const canvas = leaf.view.renderer.interactiveEl;
+    const opened = () => plugin.app.workspace.getLeavesOfType('markdown').some(item => !before.has(item.id));
+    const { ghost, coords } = await ghostPointer(leaf, files);
+    const start = ghost.getGlobalPosition();
+    const label = leaf.view.renderer.nodes[0].text;
+    assert.equal(label.eventMode, 'none', '重叠样本应使用原生非交互标签');
+    const saved = { x: label.x, y: label.y, anchorX: label.anchor.x, anchorY: label.anchor.y };
+    label.position.copyFrom(label.parent.toLocal(start));
+    label.anchor.set(0.5, 0.5);
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { ...coords, buttons: 1 }));
+    label.position.set(saved.x, saved.y);
+    label.anchor.set(saved.anchorX, saved.anchorY);
+    assert.equal(leaf.view.contentEl.querySelector('.eg-branch-preview').hidden, false, '非交互的正式节点标签不能抢走重叠的临时节点拖动');
+    await new Promise(resolve => setTimeout(resolve, 30));
+    assert.equal(opened(), false, '临时节点按下时不得立即打开笔记');
+    canvas.dispatchEvent(new PointerEvent('pointermove', { ...coords, buttons: 1, clientX: coords.clientX + 50, clientY: coords.clientY + 30 }));
+    const moved = ghost.getGlobalPosition();
+    assert.ok(Math.hypot(moved.x - start.x, moved.y - start.y) > 20, '拖动应实际移动临时节点');
+    canvas.dispatchEvent(new PointerEvent('pointerup', { ...coords, clientX: coords.clientX + 50, clientY: coords.clientY + 30 }));
+    assert.equal(opened(), false, '移动后松开临时节点不能打开笔记');
+    assert.equal(leaf.view.renderer.nodes.some(node => node.id === files[2].path), false, '临时拖动不能注入核心节点');
+    await assertGhostCancellation(leaf, files, opened);
+    const click = await ghostPointer(leaf, files);
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { ...click.coords, buttons: 1 }));
+    assert.equal(opened(), false);
+    canvas.dispatchEvent(new PointerEvent('pointerup', { ...click.coords, clientX: click.coords.clientX + 2 }));
+    await waitFor(opened, '未越过拖动阈值的单击应在松开后打开笔记');
+}
+
+async function assertGhostCancellation(leaf, files, opened) {
+    const canvas = leaf.view.renderer.interactiveEl;
+    const next = await ghostPointer(leaf, files);
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { ...next.coords, buttons: 1 }));
+    canvas.dispatchEvent(new PointerEvent('pointercancel', next.coords));
+    canvas.dispatchEvent(new PointerEvent('pointerup', next.coords));
+    assert.equal(opened(), false, '取消的拖动不能打开笔记');
+    assert.ok(leaf.view.contentEl.querySelector('.eg-branch-preview').hidden, '取消拖动应清理预览');
+    assert.equal(leaf.pinned, false, '取消拖动应释放中心固定');
+    const outside = await ghostPointer(leaf, files);
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { ...outside.coords, buttons: 1 }));
+    canvas.win.dispatchEvent(new PointerEvent('pointerup', { ...outside.coords, clientX: canvas.getBoundingClientRect().right + 20 }));
+    assert.ok(leaf.view.contentEl.querySelector('.eg-branch-preview').hidden, '移出图谱后松开应清理拖动和预览');
+    assert.equal(opened(), false, '图谱外松开不能打开笔记');
+    assert.equal(leaf.pinned, false);
 }
 
 export async function branchesIsolation(plugin) {

@@ -148,7 +148,7 @@ export class PreviewLayer {
             graphic.name = `eg-branch-edge:${edge.source}->${edge.target}`;
             graphic.eventMode = "static";
             graphic.cursor = "context-menu";
-            this.bindEdgeEvents(graphic, edge);
+            this.bindEdgeEvents(graphic);
             this.edges.push({ edge, graphic });
             this.root.addChildAt(graphic, 0);
         }
@@ -196,6 +196,23 @@ export class PreviewLayer {
         for (const [path, node] of this.nodes) {
             if (!node.core && node.group.getBounds().contains(x, y)) return { path, edge: this.relationEdge(path) };
         }
+    }
+
+    hitCoreNode(event: MouseEvent): boolean {
+        const { x, y } = this.pointerPosition(event);
+        return this.instances.renderer.nodes.some(node =>
+            node.circle?.containsPoint({ x, y })
+            || (node.text?.eventMode === "static" && node.text.containsPoint({ x, y })));
+    }
+
+    moveNode(path: string, from: MouseEvent, to: MouseEvent): void {
+        const node = this.nodes.get(path);
+        if (!this.root || !node || node.core) return;
+        const start = this.root.toLocal(this.pointerPosition(from));
+        const end = this.root.toLocal(this.pointerPosition(to));
+        const anchor = this.corePosition(this.anchor) ?? this.anchorOrigin;
+        this.offsets.set(path, { x: node.group.x + end.x - start.x - anchor.x, y: node.group.y + end.y - start.y - anchor.y });
+        this.updatePositions();
     }
 
     hitEdge(event: MouseEvent): BranchEdge | undefined {
@@ -265,26 +282,13 @@ export class PreviewLayer {
             this.callbacks.enter(path, this.mouseEvent(event), "main");
         });
         shape.on("pointerout", () => this.callbacks.leave("main"));
-        shape.on("pointertap", event => this.callbacks.open(path, this.mouseEvent(event)));
-        shape.on("pointerup", event => {
-            if (event.button !== 2) return;
-            event.preventDefault();
-            const edge = this.relationEdge(path);
-            if (edge) this.callbacks.relations(edge.source, edge.target);
-        });
     }
 
-    private bindEdgeEvents(graphic: Graphics, edge: BranchEdge): void {
-        graphic.on("pointerover", event => {
+    private bindEdgeEvents(graphic: Graphics): void {
+        graphic.on("pointerover", () => {
             this.callbacks.hold("main");
         });
         graphic.on("pointerout", () => this.callbacks.leave("main"));
-        graphic.on("pointertap", event => this.callbacks.open(edge.target, this.mouseEvent(event)));
-        graphic.on("pointerup", event => {
-            if (event.button !== 2) return;
-            event.preventDefault();
-            this.callbacks.relations(edge.source, edge.target);
-        });
     }
 
     private radialOffset(index: number, total: number, radius: number): Point {

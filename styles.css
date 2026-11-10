@@ -1,7 +1,4 @@
 .eg-hover-branches-toggle {
-    width: auto;
-    gap: 4px;
-    padding-inline: 6px;
     flex-shrink: 0;
 }
 
@@ -13,13 +10,6 @@
 .graph-controls.is-close .eg-hover-branches-toggle {
     display: flex;
     margin-top: var(--size-4-2);
-    width: max-content;
-    margin-left: auto;
-}
-
-.eg-hover-branches-label {
-    font-size: var(--font-ui-smaller);
-    white-space: nowrap;
 }
 
 .eg-branch-preview {

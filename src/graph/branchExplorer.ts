@@ -8,6 +8,14 @@ import { holdCenter } from "./centerPin";
 
 type Region = "core" | "main" | "mini" | "note";
 
+interface PreviewDrag {
+    path: string;
+    pointerId: number;
+    start: PointerEvent;
+    last: PointerEvent;
+    moved: boolean;
+}
+
 /** 当前局部图谱的手动分支、悬浮会话及原生预览分流。 */
 export class BranchExplorer extends Component {
     readonly expansions = new BranchExpansions();
@@ -46,6 +54,7 @@ export class BranchExplorer extends Component {
     private layoutPoint?: { x: number; y: number };
     private blockedHover?: { path: string; region: Region };
     private pendingSync = false;
+    private drag?: PreviewDrag;
 
     constructor(private instances: GraphInstances) {
         super();
@@ -67,7 +76,6 @@ export class BranchExplorer extends Component {
         this.toggleEl = new ExtraButtonComponent(controls).setIcon("network")
             .setTooltip("悬浮关联预览：关闭").onClick(() => this.toggle()).extraSettingsEl;
         this.toggleEl.addClasses(["graph-controls-button", "eg-hover-branches-toggle"]);
-        this.toggleEl.createSpan({ text: "悬浮关联", cls: "eg-hover-branches-label" });
         this.toggleEl.setAttribute("role", "button");
         this.toggleEl.tabIndex = 0;
         this.registerDomEvent(this.toggleEl, "keydown", event => {
@@ -80,6 +88,10 @@ export class BranchExplorer extends Component {
         this.registerDomEvent(win, "keyup", event => this.onModifier(event));
         this.registerDomEvent(win, "blur", () => this.clearPreview());
         this.registerDomEvent(win, "pointermove", event => this.onPointerMove(event), true);
+        this.registerDomEvent(win, "pointerup", event => this.onPointerUp(event), true);
+        this.registerDomEvent(win, "pointercancel", event => {
+            if (this.drag?.pointerId === event.pointerId) this.clearPreview();
+        }, true);
         this.registerDomEvent(this.instances.renderer.interactiveEl, "pointerdown", event => this.onCanvasDown(event), true);
         this.registerDomEvent(this.instances.renderer.interactiveEl, "contextmenu", event => {
             if (!this.preview.hitNode(event) && !this.preview.hitEdge(event)) return;
@@ -126,7 +138,7 @@ export class BranchExplorer extends Component {
     }
 
     private enter(path: string, event: MouseEvent, region: Region): void {
-        if (!this.enabled || !this.isAllowed(path)) return;
+        if (this.drag || !this.enabled || !this.isAllowed(path)) return;
         this.regions.add(region);
         window.clearTimeout(this.leaveTimer);
         this.lastHover = { event, path, region };
@@ -144,6 +156,7 @@ export class BranchExplorer extends Component {
     }
 
     private leave(region: Region): void {
+        if (this.drag) return;
         this.regions.delete(region);
         if (this.lastHover?.region === region) this.lastHover = undefined;
         if (this.regions.size) return;
@@ -168,6 +181,7 @@ export class BranchExplorer extends Component {
 
     private onPointerMove(event: PointerEvent): void {
         this.pointerPoint = { x: event.clientX, y: event.clientY };
+        if (this.drag) { this.moveDrag(event); return; }
         const blocked = this.blockedHover;
         if (!blocked || this.isLayoutHover(blocked.path, event)) return;
         const target = event.target as Element | null;
@@ -350,7 +364,7 @@ export class BranchExplorer extends Component {
     }
 
     private onModifier(event: KeyboardEvent): void {
-        if (!this.enabled || !this.lastHover || !["Control", "Meta"].includes(event.key)) return;
+        if (this.drag || !this.enabled || !this.lastHover || !["Control", "Meta"].includes(event.key)) return;
         const { path, region } = this.lastHover;
         const mouse = this.lastHover.event;
         const previewEvent = new MouseEvent("mousemove", { clientX: mouse.clientX, clientY: mouse.clientY, ctrlKey: event.ctrlKey, metaKey: event.metaKey });
@@ -405,14 +419,52 @@ export class BranchExplorer extends Component {
     }
 
     private onCanvasDown(event: PointerEvent): void {
+        if (!this.enabled) return;
+        if (this.preview.hitCoreNode(event)) { this.clearPreview(); return; }
         const hit = this.preview.hitNode(event);
-        const edge = hit?.edge ?? this.preview.hitEdge(event);
+        const edge = hit?.edge ?? (event.button === 2 ? this.preview.hitEdge(event) : undefined);
         if (!hit && !edge) { this.clearPreview(); return; }
         event.preventDefault();
         event.stopImmediatePropagation();
         if (event.button === 2 && edge) {
             this.instances.graphEventsDispatcher.inputsManager.showRelations(edge.target, edge.source);
-        } else if (event.button === 0) void this.open(hit?.path ?? edge!.target, event);
+        } else if (event.button === 0 && hit) {
+            window.clearTimeout(this.enterTimer);
+            this.candidate = "";
+            this.hold("main");
+            this.drag = { path: hit.path, pointerId: event.pointerId, start: event, last: event, moved: false };
+        }
+    }
+
+    private moveDrag(event: PointerEvent): void {
+        const drag = this.drag;
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (!event.buttons) { this.clearPreview(); return; }
+        drag.moved ||= Math.hypot(event.clientX - drag.start.clientX, event.clientY - drag.start.clientY) > 5;
+        if (!drag.moved) return;
+        this.preview.moveNode(drag.path, drag.last, event);
+        drag.last = event;
+        this.instances.renderer.changed();
+    }
+
+    private onPointerUp(event: PointerEvent): void {
+        const drag = this.drag;
+        if (!drag || drag.pointerId !== event.pointerId || event.button !== 0) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        this.drag = undefined;
+        const bounds = this.instances.renderer.interactiveEl.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) {
+            this.clearPreview();
+            return;
+        }
+        const moved = drag.moved || Math.hypot(event.clientX - drag.start.clientX, event.clientY - drag.start.clientY) > 5;
+        if (!moved) { void this.open(drag.path, event); return; }
+        this.preview.moveNode(drag.path, drag.last, event);
+        this.pointerPoint = this.layoutPoint = { x: event.clientX, y: event.clientY };
+        this.hold("main");
     }
 
     private fade(to: number): void {
@@ -474,6 +526,7 @@ export class BranchExplorer extends Component {
     }
 
     private clearPreview(): void {
+        this.drag = undefined;
         window.clearTimeout(this.enterTimer);
         window.clearTimeout(this.leaveTimer);
         window.clearTimeout(this.cleanupTimer);

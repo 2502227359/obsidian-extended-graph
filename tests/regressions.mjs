@@ -15,7 +15,7 @@ import { relationsPanel } from './relations-panel.mjs';
 import { relationsHeart } from './relations-heart.mjs';
 import { relationsRace } from './relations-race.mjs';
 import { relationsPaths } from './relations-paths.mjs';
-import { branchesHover, branchesExplore, branchesHit, branchesIsolation } from './branches-ui.mjs';
+import { branchesHover, branchesExplore, branchesHit, branchesIsolation, branchesDrag } from './branches-ui.mjs';
 import { centerPin } from './center-pin.mjs';
 import { branchesData, branchesSources } from './branches-data.mjs';
 import { branchesHeart } from './branches-heart.mjs';
@@ -31,6 +31,7 @@ const cases = {
     '悬浮关联开关同步控制两处临时预览': branchesHover,
     '递归悬浮手动共享分支与原生预览分流': branchesExplore,
     '主图临时节点点击与实际引用端点': branchesHit,
+    '悬浮关联区分正式节点拖动与临时节点单击': branchesDrag,
     '悬浮分支视图隔离换中心与关闭清理': branchesIsolation,
     '关联面板与悬浮预览共享中心固定状态': centerPin,
     '一层邻居与手动分支合并保留共享节点': branchesData,

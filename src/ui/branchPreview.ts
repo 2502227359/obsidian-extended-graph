@@ -63,6 +63,14 @@ export class BranchPreviewView extends Component {
         return this.layer.hitNode(event);
     }
 
+    hitCoreNode(event: MouseEvent): boolean {
+        return this.layer.hitCoreNode(event);
+    }
+
+    moveNode(path: string, from: MouseEvent, to: MouseEvent): void {
+        this.layer.moveNode(path, from, to);
+    }
+
     hitEdge(event: MouseEvent): BranchEdge | undefined {
         return this.layer.hitEdge(event);
     }
