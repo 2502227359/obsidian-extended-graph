@@ -236,7 +236,7 @@ export class BranchPreviewView extends Component {
         });
         group.addEventListener("contextmenu", event => {
             event.preventDefault();
-            const edge = this.relationEdge(path);
+            const edge = this.getRelationEdge(path);
             if (edge) this.callbacks.relations(edge.source, edge.target);
         });
         this.svg.appendChild(group);
@@ -255,7 +255,7 @@ export class BranchPreviewView extends Component {
         return positions;
     }
 
-    private relationEdge(path: string): BranchEdge | undefined {
+    getRelationEdge(path: string): BranchEdge | undefined {
         const edges = this.uniqueEdges([...(this.trailEdges ?? []), ...(this.branch?.edges ?? [])]);
         return edges.find(edge => edge.source === this.branch?.anchor && edge.target === path)
             ?? edges.find(edge => edge.target === this.branch?.anchor && edge.source === path)

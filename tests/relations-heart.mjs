@@ -8,7 +8,7 @@ export const HEART = '临床医学/临床医学/内科学/3.2 心力衰竭.md';
 export const DRUGS = '临床医学/基础医学/药理学/第二十六章 治疗心力衰竭的药物.md';
 export const NERVES = '临床医学/基础医学/生理生化基础/1.4.4 心血管调节-神经调节.md';
 
-async function openRelations(plugin, path, neighbor) {
+async function openRelations(plugin, path, neighbor, direct = false) {
     const leaf = plugin.app.workspace.getLeaf('tab');
     leaf.setPinned(true);
     await leaf.setViewState({ type: 'localgraph', state: { file: path }, active: true });
@@ -19,7 +19,10 @@ async function openRelations(plugin, path, neighbor) {
     manager.lifecycleManager.enablePlugin(leaf.view, undefined, false);
     await waitFor(() => manager.allInstances.get(leaf.id)?.graphEventsDispatcher.inputsManager, '心衰图谱增强应就绪');
     try {
-        await selectRelations(plugin, leaf, neighbor);
+        if (direct) {
+            leaf.view.renderer.onNodeClick(new MouseEvent('click', { altKey: true, button: 0, clientX: 600, clientY: 400, cancelable: true }), neighbor, '');
+            await waitFor(() => leaf.view.contentEl.querySelector('.eg-relations-panel')?.dataset.neighbor === neighbor, 'Alt 单击应直接打开真实关联位置');
+        } else await selectRelations(plugin, leaf, neighbor);
         assert.equal(leaf.view.file.path, path, '菜单应绑定指定的局部图谱中心');
         return leaf;
     } catch (error) {
@@ -53,6 +56,10 @@ async function assertPreview(app, anchor, path, subpath) {
     anchor.scrollIntoView({ block: 'nearest' });
     const rect = anchor.getBoundingClientRect();
     anchor.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, clientX: rect.left + 8, clientY: rect.top + 8 }));
+    return assertVisiblePreview(app, path, subpath);
+}
+
+async function assertVisiblePreview(app, path, subpath) {
     const target = app.vault.getAbstractFileByPath(path);
     const resolved = resolveSubpath(app.metadataCache.getFileCache(target), subpath);
     assert.ok(resolved, `验收目标应可解析：${subpath}`);
@@ -71,6 +78,49 @@ async function assertPreview(app, anchor, path, subpath) {
         assert.ok(Math.abs(view.currentMode.getScroll() - resolved.start.line) < 6, '块位置应进入悬浮窗视口');
     }
     return view;
+}
+
+export async function relationsDirectHeart(plugin) {
+    const { app } = plugin;
+    let leaf, firstParent;
+    const ref = app.workspace.on('hover-link', request => {
+        if (request.linktext === DRUGS + '#2.3 心肌肾上腺素β受体信号转导的变化') firstParent = request.hoverParent;
+    });
+    try {
+        leaf = await openRelations(plugin, HEART, DRUGS, true);
+        await waitFor(() => firstParent?.hoverPopover, '真实悬浮编辑器应接管首次预览请求');
+        leaf.view.containerEl.win.document.body.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt', bubbles: true }));
+        await assertVisiblePreview(app, DRUGS, '#2.3 心肌肾上腺素β受体信号转导的变化');
+        let panel = leaf.view.contentEl.querySelector('.eg-relations-panel');
+        assert.equal(panel.querySelectorAll('.eg-relations-group').length, 21);
+        assert.ok(panel.querySelector('.eg-relations-count').textContent.includes('34 次引用'));
+        const next = [...panel.querySelectorAll('.eg-relations-target')].find(item => item.textContent === '📚 第三节 利尿药');
+        next.click();
+        await assertVisiblePreview(app, DRUGS, '#📚 第三节 利尿药');
+        next.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true }));
+        next.click();
+        await assertVisiblePreview(app, DRUGS, '#📚 第三节 利尿药');
+        leaf.view.renderer.onNodeClick(new MouseEvent('click', { altKey: true, button: 0, clientX: 600, clientY: 400 }), NERVES, '');
+        await assertVisiblePreview(app, NERVES, '#^sympathetic-cardiac-effects');
+        const thirst = '临床医学/问题辨析/解析/利尿后口渴为什么不会抵消容量下降.md';
+        leaf.view.renderer.onNodeClick(new MouseEvent('click', { altKey: true, button: 0, clientX: 600, clientY: 400 }), thirst, '');
+        await waitFor(() => hoverView(app, HEART, '')?.currentMode?.getScroll?.() > 400, '整篇链接应自动定位心衰中的引用原文，而非笔记开头');
+        const view = hoverView(app, HEART, '');
+        assert.equal(view.getMode(), 'preview');
+        const container = view.previewMode.containerEl;
+        await waitFor(() => [...container.querySelectorAll('p,li')].some(element => {
+            const bounds = element.getBoundingClientRect(), viewport = container.getBoundingClientRect();
+            return element.textContent.includes('推导过程见') && bounds.height > 0 && bounds.bottom > viewport.top && bounds.top < viewport.bottom;
+        }), '整篇链接的真实引用段落应进入浮窗视口');
+        assert.equal(leaf.view.file.path, HEART, '自动聚焦浮窗时应保持图谱根中心');
+        panel = leaf.view.contentEl.querySelector('.eg-relations-panel');
+        panel.querySelector('.eg-relations-close').click();
+        assert.equal(leaf.pinned, false);
+    } finally {
+        app.workspace.offref(ref);
+        leaf?.detach();
+        for (const popover of [...app.plugins.plugins['hover-editor-zh'].activePopovers]) popover.hide();
+    }
 }
 
 export async function relationsHeart(plugin) {

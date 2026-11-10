@@ -12,7 +12,7 @@ import { openCoreGraph, openGraph, waitFor } from './graph-fixture.mjs';
 import { statesLayout } from './states-layout.mjs';
 import { relationsQuery, relationsLocations } from './relations-query.mjs';
 import { relationsPanel } from './relations-panel.mjs';
-import { relationsHeart } from './relations-heart.mjs';
+import { relationsHeart, relationsDirectHeart } from './relations-heart.mjs';
 import { relationsRace } from './relations-race.mjs';
 import { relationsPaths } from './relations-paths.mjs';
 import { branchesHover, branchesExplore, branchesHit, branchesIsolation, branchesDrag } from './branches-ui.mjs';
@@ -20,6 +20,7 @@ import { centerPin } from './center-pin.mjs';
 import { branchesData, branchesSources } from './branches-data.mjs';
 import { branchesHeart } from './branches-heart.mjs';
 import { relationsCommands, relationsCommandActions, relationsCommandTargets } from './relations-commands.mjs';
+import { relationsDirect, relationsDirectSource, relationsDirectBranches, relationsDirectRace } from './relations-direct.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -29,6 +30,11 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
+    'Alt单击局部节点直达首处并切换关联浮窗': relationsDirect,
+    'Alt单击整篇反链定位引用原文': relationsDirectSource,
+    'Alt单击双处临时节点并保留拖动分流': relationsDirectBranches,
+    '连续Alt单击取消旧关联自动预览': relationsDirectRace,
+    '心衰Alt单击自动定位真实标题块和引用原文': relationsDirectHeart,
     '局部关联命令可绑定快捷键并隔离活动视图': relationsCommands,
     '局部关联命令覆盖节点引用分支与预览操作': relationsCommandActions,
     '局部关联命令节点选择与过期上下文隔离': relationsCommandTargets,
@@ -299,7 +305,9 @@ const cases = {
 };
 
 // 真实库样本及 Hover Editor 验收由显式传入样本路径的独立脚本运行。
-export const caseNames = Object.keys(cases).filter(name => !['心衰真实样本的关联位置和悬浮编辑器定位', '心衰真实样本的双处预览与逐层探索'].includes(name));
+export const caseNames = Object.keys(cases).filter(name => ![
+    '心衰真实样本的关联位置和悬浮编辑器定位', '心衰真实样本的双处预览与逐层探索', '心衰Alt单击自动定位真实标题块和引用原文',
+].includes(name));
 
 export async function runRegression(name, plugin) {
     assert.equal(plugin.app.vault.getName(), '.test-vault', '只允许操作独立测试库');

@@ -133,6 +133,10 @@
     font-size: var(--font-ui-smaller);
 }
 
+.eg-relations-group.is-previewing {
+    box-shadow: inset 2px 0 var(--interactive-accent);
+}
+
 .eg-relations-panel {
     position: absolute;
     top: 52px;

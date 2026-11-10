@@ -422,6 +422,14 @@ export class BranchExplorer extends Component {
     }
 
     private async open(path: string, event: MouseEvent): Promise<void> {
+        if (event.altKey) {
+            const edge = this.preview.getRelationEdge(path);
+            const anchor = edge ? (edge.source === path ? edge.target : edge.source) : undefined;
+            if (this.instances.graphEventsDispatcher.inputsManager.previewRelations(path, event, anchor)) {
+                this.clearPreview();
+                return;
+            }
+        }
         if (event.ctrlKey || event.metaKey) { this.showNote(event, path); return; }
         try {
             await ExtendedGraphInstances.app.workspace.openLinkText(path, this.currentRoot(), "tab");

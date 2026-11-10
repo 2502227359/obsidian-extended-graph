@@ -49,3 +49,8 @@ const branchResult = await evaluate(`app.plugins.plugins['extended-graph'].runRe
 await writeFile(path.join(root, '.test-results/branches-heart.json'), JSON.stringify(branchResult, null, 2));
 assert.ok(branchResult.passed, branchResult.error);
 console.log('通过：心衰真实样本的双处临时预览、逐层探索、保留分支与真实边端点');
+const directName = '心衰Alt单击自动定位真实标题块和引用原文';
+const directResult = await evaluate(`app.plugins.plugins['extended-graph'].runRegression(${JSON.stringify(directName)})`);
+await writeFile(path.join(root, '.test-results/direct-heart.json'), JSON.stringify(directResult, null, 2));
+assert.ok(directResult.passed, directResult.error);
+console.log('通过：心衰 Alt 单击自动显示真实标题、切换位置、块与引用原文阅读模式定位');

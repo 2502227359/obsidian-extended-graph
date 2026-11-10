@@ -44,7 +44,7 @@ export class InputsManager {
     }
 
     private changeNodeOnClick(): void {
-        if (this.instances.settings.openInNewTab || this.instances.settings.externalLinks !== "none") {
+        if (this.instances.type === "localgraph" || this.instances.settings.openInNewTab || this.instances.settings.externalLinks !== "none") {
             this.onNodeClick = this.onNodeClick.bind(this);
             this.coreOnNodeClick = this.instances.renderer.onNodeClick;
             this.instances.renderer.onNodeClick = this.onNodeClick;
@@ -197,6 +197,7 @@ export class InputsManager {
     // ============================== NODE CLICKS ==============================
 
     private onNodeClick(e: UserEvent | null, id: string, type: string): void {
+        if (e && "button" in e && this.previewRelations(id, e as MouseEvent)) return;
         // Check if we select the node
         if (e && ExtendedGraphInstances.settings.useLeftClickToSelect && Keymap.isModifier(e, ExtendedGraphInstances.settings.selectNodeModifier)) {
             this.instances.nodesSet.selectNodes([this.instances.renderer.nodeLookup[id]]);
@@ -359,11 +360,20 @@ export class InputsManager {
         pinner.pinNode(file.path);
     }
 
-    showRelations(nodePath: string, anchorPath?: string): void {
+    previewRelations(nodePath: string, event: MouseEvent, anchorPath?: string): boolean {
+        if (this.instances.type !== "localgraph" || event.button !== 0 || !event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return false;
+        const file = ExtendedGraphInstances.app.vault.getAbstractFileByPath(nodePath);
+        if (!(file instanceof TFile) || file.extension !== "md") return false;
+        event.preventDefault();
+        this.showRelations(nodePath, anchorPath, event);
+        return true;
+    }
+
+    showRelations(nodePath: string, anchorPath?: string, previewEvent?: MouseEvent): void {
         if (this.instances.type !== "localgraph") return;
         const dispatcher = this.instances.graphEventsDispatcher;
         if (dispatcher.relationsUI) dispatcher.removeChild(dispatcher.relationsUI);
-        dispatcher.relationsUI = new RelationsUI(this.instances, nodePath, anchorPath);
+        dispatcher.relationsUI = new RelationsUI(this.instances, nodePath, anchorPath, previewEvent);
         dispatcher.addChild(dispatcher.relationsUI);
     }
 
