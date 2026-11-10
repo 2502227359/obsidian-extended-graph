@@ -15,6 +15,10 @@ import { relationsPanel } from './relations-panel.mjs';
 import { relationsHeart } from './relations-heart.mjs';
 import { relationsRace } from './relations-race.mjs';
 import { relationsPaths } from './relations-paths.mjs';
+import { branchesHover, branchesExplore, branchesHit, branchesIsolation } from './branches-ui.mjs';
+import { centerPin } from './center-pin.mjs';
+import { branchesData, branchesSources } from './branches-data.mjs';
+import { branchesHeart } from './branches-heart.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -24,6 +28,14 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
+    '悬浮关联开关同步控制两处临时预览': branchesHover,
+    '递归悬浮手动共享分支与原生预览分流': branchesExplore,
+    '主图临时节点点击与实际引用端点': branchesHit,
+    '悬浮分支视图隔离换中心与关闭清理': branchesIsolation,
+    '关联面板与悬浮预览共享中心固定状态': centerPin,
+    '一层邻居与手动分支合并保留共享节点': branchesData,
+    '分支来源过滤分页与索引增量更新': branchesSources,
+    '心衰真实样本的双处预览与逐层探索': branchesHeart,
     '局部关联查询合并重复位置并保留双向来源': relationsQuery,
     '局部关联解析编码链接并提示失效与歧义': relationsLocations,
     '关联读取期间笔记变化不得使用旧来源位置': relationsRace,
@@ -282,7 +294,7 @@ const cases = {
 };
 
 // 真实库样本及 Hover Editor 验收由显式传入样本路径的独立脚本运行。
-export const caseNames = Object.keys(cases).filter(name => name !== '心衰真实样本的关联位置和悬浮编辑器定位');
+export const caseNames = Object.keys(cases).filter(name => !['心衰真实样本的关联位置和悬浮编辑器定位', '心衰真实样本的双处预览与逐层探索'].includes(name));
 
 export async function runRegression(name, plugin) {
     assert.equal(plugin.app.vault.getName(), '.test-vault', '只允许操作独立测试库');

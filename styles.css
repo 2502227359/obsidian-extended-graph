@@ -1,3 +1,148 @@
+.eg-hover-branches-toggle {
+    width: auto;
+    gap: 4px;
+    padding-inline: 6px;
+    flex-shrink: 0;
+}
+
+.eg-hover-branches-toggle.is-active {
+    color: var(--text-on-accent);
+    background: var(--interactive-accent);
+}
+
+.graph-controls.is-close .eg-hover-branches-toggle {
+    display: flex;
+    margin-top: var(--size-4-2);
+    width: max-content;
+    margin-left: auto;
+}
+
+.eg-hover-branches-label {
+    font-size: var(--font-ui-smaller);
+    white-space: nowrap;
+}
+
+.eg-branch-preview {
+    position: absolute;
+    z-index: 9;
+    width: min(340px, calc(100% - 24px));
+    max-height: calc(100% - 24px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    background: var(--background-primary);
+    box-shadow: var(--shadow-l);
+    overflow: auto;
+    overscroll-behavior: contain;
+    font-size: var(--font-ui-small);
+}
+
+.eg-branch-preview[hidden] {
+    display: none;
+}
+
+.eg-branch-preview-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+}
+
+.eg-branch-preview-count {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.eg-branch-preview-trail {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.eg-branch-preview-trail-path {
+    max-width: 140px;
+    padding: 2px 5px;
+    height: auto;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-ui-smaller);
+}
+
+.eg-branch-preview-svg {
+    width: 100%;
+    height: auto;
+    min-height: 150px;
+    max-height: 270px;
+    flex-shrink: 0;
+    overflow: visible;
+}
+
+.eg-branch-preview-edge {
+    stroke: var(--interactive-accent);
+    stroke-width: 1.5;
+    opacity: 0.65;
+    cursor: context-menu;
+}
+
+.eg-branch-preview-svg marker path {
+    fill: var(--interactive-accent);
+}
+
+.eg-branch-preview-node {
+    cursor: pointer;
+    outline: none;
+}
+
+.eg-branch-preview-node circle {
+    fill: var(--background-primary);
+    stroke: var(--interactive-accent);
+    stroke-width: 2;
+}
+
+.eg-branch-preview-node.is-anchor circle,
+.eg-branch-preview-node:hover circle,
+.eg-branch-preview-node:focus circle {
+    fill: var(--interactive-accent);
+}
+
+.eg-branch-preview-node text {
+    fill: var(--text-normal);
+    font-size: 11px;
+    pointer-events: none;
+    paint-order: stroke;
+    stroke: var(--background-primary);
+    stroke-width: 3px;
+}
+
+.eg-branch-preview.is-dense .eg-branch-preview-node:not(.is-anchor) text {
+    opacity: 0;
+}
+
+.eg-branch-preview.is-dense .eg-branch-preview-node:hover text,
+.eg-branch-preview.is-dense .eg-branch-preview-node:focus text {
+    opacity: 1;
+}
+
+.eg-branch-preview-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.eg-branch-preview-action {
+    height: 26px;
+    padding-inline: 7px;
+    font-size: var(--font-ui-smaller);
+}
+
 .eg-relations-panel {
     position: absolute;
     top: 52px;

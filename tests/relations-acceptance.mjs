@@ -12,6 +12,9 @@ const samplePaths = [
     '临床医学/临床医学/内科学/3.2 心力衰竭.md',
     '临床医学/基础医学/药理学/第二十六章 治疗心力衰竭的药物.md',
     '临床医学/基础医学/生理生化基础/1.4.4 心血管调节-神经调节.md',
+    '临床医学/问题辨析/解析/利尿后口渴为什么不会抵消容量下降.md',
+    '临床医学/基础医学/生理生化基础/1.8.5 尿生成的调节.md',
+    '临床医学/基础医学/生理生化基础/1.10.4 内脏活动调节-中枢调节与本能行为.md',
 ];
 for (const relative of samplePaths) {
     const destination = path.join(vault, relative);
@@ -41,3 +44,8 @@ await mkdir(path.join(root, '.test-results'), { recursive: true });
 await writeFile(path.join(root, '.test-results/relations-heart.json'), JSON.stringify(result, null, 2));
 assert.ok(result.passed, result.error);
 console.log('通过：心衰 21 个位置、34 处引用，两个标题与真实块的 Hover Editor 阅读模式定位');
+const branchName = '心衰真实样本的双处预览与逐层探索';
+const branchResult = await evaluate(`app.plugins.plugins['extended-graph'].runRegression(${JSON.stringify(branchName)})`);
+await writeFile(path.join(root, '.test-results/branches-heart.json'), JSON.stringify(branchResult, null, 2));
+assert.ok(branchResult.passed, branchResult.error);
+console.log('通过：心衰真实样本的双处临时预览、逐层探索、保留分支与真实边端点');

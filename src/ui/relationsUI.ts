@@ -2,6 +2,7 @@ import { Component, ExtraButtonComponent, HoverParent, Notice, TFile } from "obs
 import { LocalGraphView } from "obsidian-typings";
 import { ExtendedGraphInstances, GraphInstances } from "../pluginInstances";
 import { readRelations, RelationGroup, RelationOccurrence } from "../relations/relations";
+import { holdCenter } from "../graph/centerPin";
 
 export const RELATIONS_HOVER_SOURCE = "extended-graph-relations";
 
@@ -22,17 +23,20 @@ export class RelationsUI extends Component {
     private hoverParents = new Set<HoverParent>();
     private centerPath: string;
     private pinnedByPanel = false;
+    private releaseCenter?: () => void;
+    private graphCenterPath: string;
 
-    constructor(private instances: GraphInstances, private neighborPath: string) {
+    constructor(private instances: GraphInstances, private neighborPath: string, anchorPath?: string) {
         super();
-        this.centerPath = (instances.view as LocalGraphView).file?.path ?? "";
+        this.graphCenterPath = (instances.view as LocalGraphView).file?.path ?? "";
+        this.centerPath = anchorPath ?? this.graphCenterPath;
     }
 
     override onload(): void {
         this.active = true;
         const leaf = this.instances.view.leaf;
         this.pinnedByPanel = !leaf.pinned;
-        if (this.pinnedByPanel) leaf.setPinned(true);
+        this.releaseCenter = holdCenter(leaf);
         this.createPanel();
         this.registerDomEvent(this.root, "mouseover", event => { void this.followLink(event, true); });
         this.registerDomEvent(this.root, "mouseout", event => {
@@ -48,6 +52,7 @@ export class RelationsUI extends Component {
         this.registerEvent(app.vault.on("rename", (file, oldPath) => {
             if (![this.centerPath, this.neighborPath].includes(oldPath)) return;
             if (oldPath === this.centerPath) this.centerPath = file.path;
+            if (oldPath === this.graphCenterPath) this.graphCenterPath = file.path;
             if (oldPath === this.neighborPath) this.neighborPath = file.path;
             void this.refresh();
         }));
@@ -98,7 +103,7 @@ export class RelationsUI extends Component {
 
     private renderGroup(group: RelationGroup, index: number): void {
         const card = this.body.createDiv({ cls: "eg-relations-group" });
-        card.createDiv({ cls: "eg-relations-direction", text: `${group.direction === "outgoing" ? "中心引用邻居" : "邻居引用中心"} · ${group.occurrences.length} 次引用` });
+        card.createDiv({ cls: "eg-relations-direction", text: `${this.fileName(group.sourcePath)} → ${this.fileName(group.targetPath)} · ${group.occurrences.length} 次引用` });
         const target = card.createEl("a", { cls: "eg-relations-target", text: group.label, href: "#" });
         target.dataset.group = String(index);
         target.dataset.kind = "target";
@@ -191,7 +196,7 @@ export class RelationsUI extends Component {
 
     closeIfCenterChanged(): void {
         const current = (this.instances.view as LocalGraphView).file?.path;
-        if (this.active && current && current !== this.centerPath) {
+        if (this.active && current && current !== this.graphCenterPath) {
             this.instances.graphEventsDispatcher.removeChild(this);
         }
     }
@@ -201,6 +206,6 @@ export class RelationsUI extends Component {
         ++this.revision;
         this.clearPreviews();
         this.root?.remove();
-        if (this.pinnedByPanel) this.instances.view.leaf.setPinned(false);
+        this.releaseCenter?.();
     }
 }

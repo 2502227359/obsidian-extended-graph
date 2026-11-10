@@ -30,6 +30,7 @@ import {
 } from "../internal";
 import { GraphFilter } from "./graphFilter";
 import { RelationsUI } from "../ui/relationsUI";
+import { BranchExplorer } from "./branchExplorer";
 
 interface LastFilteringAction {
     id: 'core-search' | 'core-tags' | 'core-attachments' | 'core-hide-unresolved' | 'core-orphans'
@@ -66,6 +67,7 @@ export class GraphEventsDispatcher extends Component {
     instances: GraphInstances;
     inputsManager: InputsManager;
     relationsUI?: RelationsUI;
+    branches?: BranchExplorer;
     reloadStateDuringInit: boolean;
 
     lastFilteringAction: LastFilteringAction | undefined;
@@ -111,6 +113,9 @@ export class GraphEventsDispatcher extends Component {
     }
 
     private initializeUI(): void {
+        if (this.instances.type === "localgraph") {
+            this.branches = this.addChild(new BranchExplorer(this.instances));
+        }
         this.initializeLayersUI();
         this.initializeLegendUI();
 
@@ -636,7 +641,8 @@ export class GraphEventsDispatcher extends Component {
      * Called when a child is added to the stage by the engine.
      */
     private onChildAddedToStage(child: DisplayObject, container: Container, index: number): void {
-        if (!this.listenStage) return;
+        // 临时层可能在核心新节点完成绘制前加入，不得提前建立核心图形查找缓存。
+        if (!this.listenStage || child.name === "eg-branch-layer") return;
 
         const node = this.getNodeLookup().get(child);
         if (node) {
@@ -711,7 +717,7 @@ export class GraphEventsDispatcher extends Component {
     }
 
     private onChildRemovedFromStage(child: DisplayObject, container: Container<DisplayObject>, index: number): void {
-        if (!this.listenStage) return;
+        if (!this.listenStage || child.name === "eg-branch-layer") return;
 
         if (this.instances.foldersSet) {
             for (const [id, folderBlob] of this.instances.foldersSet.foldersMap) {
@@ -728,6 +734,7 @@ export class GraphEventsDispatcher extends Component {
 
     private updateData(data: GraphData): GraphData | undefined {
         this.relationsUI?.closeIfCenterChanged();
+        data = this.branches?.mergeData(data) ?? data;
         // Filter out nodes
         data = this.instances.filter.filterData(data);
 
@@ -769,6 +776,7 @@ export class GraphEventsDispatcher extends Component {
     // ============================== GRAPH CYCLE ==============================
 
     private beforeDestroyGraphics() {
+        this.branches?.beforeGraphicsReset();
         this.clearPendingInitTimeout();
         this.instances.cssBridge.unload();
         this.unbindStageEvents();
@@ -842,6 +850,7 @@ export class GraphEventsDispatcher extends Component {
     }
 
     private beforeRenderCallback() {
+        this.branches?.frame();
         // If nodes need to be pinned because we just changed the state and new nodes were added
         if (this.instances.statePinnedNodes) {
             const pinner = new Pinner(this.instances);

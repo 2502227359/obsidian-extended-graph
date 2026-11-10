@@ -1,5 +1,6 @@
 import { addIcon, getIcon, MarkdownView, normalizePath, Notice, Plugin, WorkspaceLeaf } from 'obsidian';
 import { RELATIONS_HOVER_SOURCE } from './ui/relationsUI';
+import { NeighborIndex } from './relations/neighbors';
 import {
     addCommands,
     DEFAULT_SETTINGS,
@@ -26,6 +27,7 @@ import {
 // https://pixijs.download/v7.4.2/docs/index.html
 
 export default class ExtendedGraphPlugin extends Plugin {
+    neighborIndex: NeighborIndex;
 
     // ================================ LOADING ================================
 
@@ -37,6 +39,7 @@ export default class ExtendedGraphPlugin extends Plugin {
         ExtendedGraphInstances.configurationDirectory = normalizePath(this.manifest.dir + "/configs/");
         ExtendedGraphInstances.proxysManager = new ProxysManager();
         await this.loadSettings();
+        this.neighborIndex = this.addChild(new NeighborIndex(this.app));
 
         this.addIcons();
 

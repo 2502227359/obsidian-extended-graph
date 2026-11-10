@@ -328,6 +328,15 @@ export class InputsManager {
         if (this.instances.type === "localgraph" && file.extension === "md") {
             menu.addItem(item => item.setTitle("查看与中心关联").setIcon("list-tree")
                 .onClick(() => this.showRelations(file.path)));
+            const branches = this.instances.graphEventsDispatcher.branches;
+            if (branches) {
+                menu.addItem(item => item.setTitle(branches.expansions.anchors.has(file.path) ? "收起这一层" : "展开一层")
+                    .setIcon("git-branch").onClick(() => branches.toggleBranch(file.path)));
+                menu.addItem(item => item.setTitle("清除手动展开").setIcon("fold-vertical")
+                    .onClick(() => branches.clearManual()));
+                menu.addItem(item => item.setTitle("切换来源关联显示").setIcon("files")
+                    .onClick(() => branches.toggleSources()));
+            }
         }
         menu.addItem(cb => {
             if (this.instances.nodesSet.isNodePinned(file.path)) {
@@ -350,11 +359,11 @@ export class InputsManager {
         pinner.pinNode(file.path);
     }
 
-    showRelations(nodePath: string): void {
+    showRelations(nodePath: string, anchorPath?: string): void {
         if (this.instances.type !== "localgraph") return;
         const dispatcher = this.instances.graphEventsDispatcher;
         if (dispatcher.relationsUI) dispatcher.removeChild(dispatcher.relationsUI);
-        dispatcher.relationsUI = new RelationsUI(this.instances, nodePath);
+        dispatcher.relationsUI = new RelationsUI(this.instances, nodePath, anchorPath);
         dispatcher.addChild(dispatcher.relationsUI);
     }
 

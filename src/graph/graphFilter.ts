@@ -18,11 +18,11 @@ export class GraphFilter {
         this.instances = instances;
     }
 
-    filterData(data: GraphData): GraphData {
+    filterData(data: GraphData, preview = false): GraphData {
         // Filter out nodes
         this.excludeNodes(data);
 
-        this.addExternalLinks(data);
+        if (!preview) this.addExternalLinks(data);
 
         let nodesToRemove: string[] = [];
 
@@ -56,9 +56,13 @@ export class GraphFilter {
 
         data = this.filterOrphans(data, potentialOrphans);
 
-        ExtendedGraphInstances.graphsManager.updateStatusBarItem(this.instances.view.leaf, Object.keys(data.nodes).length);
+        if (!preview) ExtendedGraphInstances.graphsManager.updateStatusBarItem(this.instances.view.leaf, Object.keys(data.nodes).length);
 
         return data;
+    }
+
+    allowsFile(path: string): boolean {
+        return !this.shouldRemoveNode(path, { type: "", links: {} });
     }
 
     private excludeNodes(data: GraphData) {

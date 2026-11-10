@@ -271,6 +271,7 @@ export class RadialMenuManager {
                 id: 'relations', title: "查看与中心关联", icon: 'list-tree', color: 'cyan',
                 onClick: () => this.instances.graphEventsDispatcher.inputsManager.showRelations(this.nodeID),
             });
+            this.addBranchItems();
         }
 
         if (this.instances.settings.enableFeatures[this.instances.type]['links'] && (this.getInteractivesTypes(LINK_KEY)?.size ?? 0) > 0) {
@@ -343,6 +344,28 @@ export class RadialMenuManager {
             }
         }
 
+    }
+
+    private addBranchItems(): void {
+        const branches = this.instances.graphEventsDispatcher.branches;
+        if (!branches) return;
+        this.allItems.push({
+            id: 'branches', title: "局部分支", icon: 'git-branch', color: 'purple',
+            items: [
+                {
+                    id: 'branch-toggle', title: branches.expansions.anchors.has(this.nodeID) ? "收起这一层" : "展开一层",
+                    icon: 'git-branch', color: 'purple', onClick: () => branches.toggleBranch(this.nodeID),
+                },
+                {
+                    id: 'branch-clear', title: "收起所有手动分支", icon: 'fold-vertical', color: 'purple',
+                    onClick: () => branches.clearManual(),
+                },
+                {
+                    id: 'branch-sources', title: "切换来源关联", icon: 'book-open', color: 'purple',
+                    onClick: () => branches.toggleSources(),
+                },
+            ],
+        });
     }
 
     setCurrentMenu(menu: RadialMenu) {
