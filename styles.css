@@ -309,6 +309,23 @@ body {
     flex-wrap: wrap;
     align-items: center;
     gap: var(--size-4-3);
+
+    .setting-item {
+        align-items: center;
+        gap: var(--size-4-3);
+        margin: 0;
+        padding: 0;
+    }
+
+    .setting-item-info {
+        flex: 0 0 auto;
+        margin: 0;
+    }
+
+    .setting-item-control {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
 }
 
 .graph-states-container.is-closed {

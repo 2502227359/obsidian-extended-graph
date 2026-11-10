@@ -194,9 +194,9 @@ export class StatesUI extends Component {
 
     private displaySaveDeleteButton() {
         if (this.selectState.getValue() !== DEFAULT_STATE_ID) {
-            this.stateSetting.settingEl.append(this.editButton.extraSettingsEl);
-            this.stateSetting.settingEl.append(this.saveButton.extraSettingsEl);
-            this.stateSetting.settingEl.append(this.deleteButton.extraSettingsEl);
+            this.stateSetting.controlEl.insertBefore(this.editButton.extraSettingsEl, this.addButton.extraSettingsEl);
+            this.stateSetting.controlEl.append(this.saveButton.extraSettingsEl);
+            this.stateSetting.controlEl.append(this.deleteButton.extraSettingsEl);
         }
         else {
             this.editButton.extraSettingsEl.remove();

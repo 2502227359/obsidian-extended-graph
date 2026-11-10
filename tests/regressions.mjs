@@ -9,6 +9,7 @@ import { JaccardCalculator } from '../src/statsCalculators/links/jaccardCalculat
 import { CoCitationsCalculator } from '../src/statsCalculators/links/coCitationsCalculator.ts';
 import { SVGFixture } from './svg-fixture.mjs';
 import { openCoreGraph, openGraph, waitFor } from './graph-fixture.mjs';
+import { statesLayout } from './states-layout.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -18,6 +19,7 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
+    '状态浮层默认与自定义状态的控件居中对齐': statesLayout,
     async '等待保存时关闭图谱不会阻止同一标签页再次启用'(plugin) {
         const graph = await openCoreGraph(plugin);
         const manager = ExtendedGraphInstances.graphsManager;
