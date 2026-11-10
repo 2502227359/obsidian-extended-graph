@@ -266,6 +266,13 @@ export class RadialMenuManager {
         ];
 
 
+        if (this.instances.type === "localgraph" && (this.nodeType === "" || this.nodeType === "focused")) {
+            this.allItems.push({
+                id: 'relations', title: "查看与中心关联", icon: 'list-tree', color: 'cyan',
+                onClick: () => this.instances.graphEventsDispatcher.inputsManager.showRelations(this.nodeID),
+            });
+        }
+
         if (this.instances.settings.enableFeatures[this.instances.type]['links'] && (this.getInteractivesTypes(LINK_KEY)?.size ?? 0) > 0) {
             this.allItems.push({
                 id: 'links',

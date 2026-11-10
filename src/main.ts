@@ -1,4 +1,5 @@
 import { addIcon, getIcon, MarkdownView, normalizePath, Notice, Plugin, WorkspaceLeaf } from 'obsidian';
+import { RELATIONS_HOVER_SOURCE } from './ui/relationsUI';
 import {
     addCommands,
     DEFAULT_SETTINGS,
@@ -64,6 +65,7 @@ export default class ExtendedGraphPlugin extends Plugin {
         );
 
         addCommands(this);
+        this.registerHoverLinkSource(RELATIONS_HOVER_SOURCE, { display: "Extended Graph 关联位置", defaultMod: false });
     }
 
     private addIcons(): void {

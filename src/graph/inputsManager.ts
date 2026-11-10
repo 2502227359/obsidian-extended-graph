@@ -2,6 +2,7 @@ import { Keymap, Menu, TFile, UserEvent } from "obsidian";
 import { FederatedPointerEvent, Graphics } from "pixi.js";
 import { getFileInteractives, OpenExternalLinkModal, Pinner, pixiAddChild, RadialMenuManager, t } from "../internal";
 import { GraphInstances, ExtendedGraphInstances } from "../pluginInstances";
+import { RelationsUI } from "../ui/relationsUI";
 
 export class InputsManager {
     instances: GraphInstances;
@@ -324,6 +325,10 @@ export class InputsManager {
 
     onNodeMenuOpened(menu: Menu, file: TFile) {
         menu.addSections(['extended-graph']);
+        if (this.instances.type === "localgraph" && file.extension === "md") {
+            menu.addItem(item => item.setTitle("查看与中心关联").setIcon("list-tree")
+                .onClick(() => this.showRelations(file.path)));
+        }
         menu.addItem(cb => {
             if (this.instances.nodesSet.isNodePinned(file.path)) {
                 cb.iconEl.addClass("extended-graph-pin-off");
@@ -343,6 +348,14 @@ export class InputsManager {
     private pinNode(file: TFile) {
         const pinner = new Pinner(this.instances);
         pinner.pinNode(file.path);
+    }
+
+    showRelations(nodePath: string): void {
+        if (this.instances.type !== "localgraph") return;
+        const dispatcher = this.instances.graphEventsDispatcher;
+        if (dispatcher.relationsUI) dispatcher.removeChild(dispatcher.relationsUI);
+        dispatcher.relationsUI = new RelationsUI(this.instances, nodePath);
+        dispatcher.addChild(dispatcher.relationsUI);
     }
 
     pinNodeFromId(id: string) {

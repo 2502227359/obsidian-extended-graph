@@ -1,3 +1,80 @@
+.eg-relations-panel {
+    position: absolute;
+    top: 52px;
+    right: var(--size-4-3);
+    z-index: 6;
+    width: min(420px, calc(100% - 24px));
+    max-height: calc(100% - 80px);
+    display: flex;
+    flex-direction: column;
+    padding: var(--size-4-3);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    background: var(--background-primary);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    text-align: start;
+}
+
+.eg-relations-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.eg-relations-count,
+.eg-relations-direction,
+.eg-relations-source {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.eg-relations-body {
+    overflow: auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+}
+
+.eg-relations-pair {
+    padding-block: var(--size-4-2);
+    overflow-wrap: anywhere;
+}
+
+.eg-relations-group {
+    border-top: 1px solid var(--background-modifier-border);
+    padding-block: var(--size-4-2);
+}
+
+.eg-relations-target {
+    display: block;
+    margin-block: var(--size-4-1);
+    overflow-wrap: anywhere;
+}
+
+.eg-relations-target[aria-disabled="true"],
+.eg-relations-warning {
+    color: var(--text-warning);
+}
+
+.eg-relations-group summary {
+    cursor: pointer;
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+}
+
+.eg-relations-occurrence {
+    border-inline-start: 2px solid var(--background-modifier-border);
+    padding-inline-start: var(--size-4-2);
+    margin-block: var(--size-4-2);
+    overflow-wrap: anywhere;
+}
+
+.eg-relations-occurrence p {
+    white-space: pre-wrap;
+    margin-block: var(--size-4-1);
+    user-select: text;
+}
+
 body {
     --ext-graph-background-container: var(--background-primary);
     --ext-graph-background-container-opacity: 0.9;

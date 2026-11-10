@@ -10,6 +10,11 @@ import { CoCitationsCalculator } from '../src/statsCalculators/links/coCitations
 import { SVGFixture } from './svg-fixture.mjs';
 import { openCoreGraph, openGraph, waitFor } from './graph-fixture.mjs';
 import { statesLayout } from './states-layout.mjs';
+import { relationsQuery, relationsLocations } from './relations-query.mjs';
+import { relationsPanel } from './relations-panel.mjs';
+import { relationsHeart } from './relations-heart.mjs';
+import { relationsRace } from './relations-race.mjs';
+import { relationsPaths } from './relations-paths.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -19,6 +24,12 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
+    '局部关联查询合并重复位置并保留双向来源': relationsQuery,
+    '局部关联解析编码链接并提示失效与歧义': relationsLocations,
+    '关联读取期间笔记变化不得使用旧来源位置': relationsRace,
+    '关联查询遵循同名路径并保留属性与嵌入证据': relationsPaths,
+    '局部节点菜单打开关联面板并发出准确悬浮链接': relationsPanel,
+    '心衰真实样本的关联位置和悬浮编辑器定位': relationsHeart,
     '状态浮层默认与自定义状态的控件居中对齐': statesLayout,
     async '等待保存时关闭图谱不会阻止同一标签页再次启用'(plugin) {
         const graph = await openCoreGraph(plugin);
@@ -270,7 +281,8 @@ const cases = {
     },
 };
 
-export const caseNames = Object.keys(cases);
+// 真实库样本及 Hover Editor 验收由显式传入样本路径的独立脚本运行。
+export const caseNames = Object.keys(cases).filter(name => name !== '心衰真实样本的关联位置和悬浮编辑器定位');
 
 export async function runRegression(name, plugin) {
     assert.equal(plugin.app.vault.getName(), '.test-vault', '只允许操作独立测试库');

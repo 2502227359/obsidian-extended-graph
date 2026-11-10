@@ -29,6 +29,7 @@ import {
     CSSBridge
 } from "../internal";
 import { GraphFilter } from "./graphFilter";
+import { RelationsUI } from "../ui/relationsUI";
 
 interface LastFilteringAction {
     id: 'core-search' | 'core-tags' | 'core-attachments' | 'core-hide-unresolved' | 'core-orphans'
@@ -64,6 +65,7 @@ interface LastFilteringAction {
 export class GraphEventsDispatcher extends Component {
     instances: GraphInstances;
     inputsManager: InputsManager;
+    relationsUI?: RelationsUI;
     reloadStateDuringInit: boolean;
 
     lastFilteringAction: LastFilteringAction | undefined;
@@ -725,6 +727,7 @@ export class GraphEventsDispatcher extends Component {
     }
 
     private updateData(data: GraphData): GraphData | undefined {
+        this.relationsUI?.closeIfCenterChanged();
         // Filter out nodes
         data = this.instances.filter.filterData(data);
 
