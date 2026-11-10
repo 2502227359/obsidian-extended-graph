@@ -63,7 +63,9 @@ async function assertVisiblePreview(app, path, subpath) {
     const target = app.vault.getAbstractFileByPath(path);
     const resolved = resolveSubpath(app.metadataCache.getFileCache(target), subpath);
     assert.ok(resolved, `验收目标应可解析：${subpath}`);
-    await waitFor(() => hoverView(app, path, subpath)?.currentMode?.getScroll?.() > 0, `悬浮编辑器应滚动至 ${subpath}`);
+    await waitFor(() => hoverView(app, path, subpath)?.currentMode?.getScroll?.() > 0, `悬浮编辑器应滚动至 ${subpath}`).catch(error => {
+        throw Error(`${error.message}；${JSON.stringify({ hidden: document.hidden, popovers: app.plugins.plugins['hover-editor-zh'].activePopovers.map(p => ({ link: p.originalLinkText, state: p.state, scroll: p.leaves().map(l => l.view.currentMode?.getScroll?.()) })) })}`);
+    });
     const view = hoverView(app, path, subpath);
     assert.equal(view.getMode(), 'preview', '应使用真实阅读模式验收');
     if (resolved.type === 'heading') {
@@ -94,7 +96,7 @@ export async function relationsDirectHeart(plugin) {
         let panel = leaf.view.contentEl.querySelector('.eg-relations-panel');
         assert.equal(panel.querySelectorAll('.eg-relations-group').length, 21);
         assert.ok(panel.querySelector('.eg-relations-count').textContent.includes('34 次引用'));
-        const next = [...panel.querySelectorAll('.eg-relations-target')].find(item => item.textContent === '📚 第三节 利尿药');
+        const next = [...panel.querySelectorAll('.eg-relations-target')].find(item => item.dataset.subpath === '#📚 第三节 利尿药');
         next.click();
         await assertVisiblePreview(app, DRUGS, '#📚 第三节 利尿药');
         next.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true }));
@@ -104,7 +106,10 @@ export async function relationsDirectHeart(plugin) {
         await assertVisiblePreview(app, NERVES, '#^sympathetic-cardiac-effects');
         const thirst = '临床医学/问题辨析/解析/利尿后口渴为什么不会抵消容量下降.md';
         leaf.view.renderer.onNodeClick(new MouseEvent('click', { altKey: true, button: 0, clientX: 600, clientY: 400 }), thirst, '');
-        await waitFor(() => hoverView(app, HEART, '')?.currentMode?.getScroll?.() > 400, '整篇链接应自动定位心衰中的引用原文，而非笔记开头');
+        await waitFor(() => hoverView(app, HEART, '')?.currentMode?.getScroll?.() > 400, '整篇链接应自动定位心衰中的引用原文，而非笔记开头').catch(error => {
+            const popovers = app.plugins.plugins['hover-editor-zh'].activePopovers.map(p => ({ link: p.originalLinkText, state: p.state, scroll: p.leaves().map(l => l.view.currentMode?.getScroll?.()) }));
+            throw Error(`${error.message}；${JSON.stringify({ hidden: document.hidden, status: leaf.view.contentEl.querySelector('.eg-relations-status')?.textContent, popovers })}`);
+        });
         const view = hoverView(app, HEART, '');
         assert.equal(view.getMode(), 'preview');
         const container = view.previewMode.containerEl;
@@ -139,7 +144,7 @@ export async function relationsHeart(plugin) {
         const panel = leaf.view.contentEl.querySelector('.eg-relations-panel');
         assert.equal(panel.querySelectorAll('.eg-relations-group').length, 21);
         for (const title of ['📚 第三节 利尿药', '📚 第四节 β肾上腺素受体阻断药']) {
-            const anchor = [...panel.querySelectorAll('.eg-relations-target')].find(item => item.textContent === title);
+            const anchor = [...panel.querySelectorAll('.eg-relations-target')].find(item => item.dataset.subpath === '#' + title);
             assert.ok(anchor, `面板应显示 ${title}`);
             await assertPreview(app, anchor, DRUGS, '#' + title);
             assert.equal(leaf.view.file.path, HEART, '预览不能把局部图谱中心换成目标文件');
@@ -152,7 +157,7 @@ export async function relationsHeart(plugin) {
         await waitFor(() => app.workspace.getLeavesOfType('markdown').some(item => !beforeOpen.has(item.id) && item.view.file?.path === HEART), '点击引用原文应在新标签页打开来源笔记');
         assert.equal(leaf.view.file?.path, HEART, '打开引用原文时也应保持原图谱中心');
         await selectRelations(plugin, leaf, NERVES);
-        const block = [...leaf.view.contentEl.querySelectorAll('.eg-relations-target')].find(item => item.textContent.includes('sympathetic-cardiac-effects'));
+        const block = [...leaf.view.contentEl.querySelectorAll('.eg-relations-target')].find(item => item.dataset.subpath === '#^sympathetic-cardiac-effects');
         assert.ok(block, '心衰真实块引用应显示');
         await assertPreview(app, block, NERVES, '#^sympathetic-cardiac-effects');
         leaf.view.contentEl.querySelector('.eg-relations-close').click();

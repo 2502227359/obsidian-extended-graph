@@ -11,6 +11,12 @@ interface Point {
     y: number;
 }
 
+interface PreviewState {
+    page: number;
+    pages: number;
+    retained: boolean;
+}
+
 /** 与主图临时层共享数据的局部关系小图。 */
 export class BranchPreviewView extends Component {
     private readonly layer: PreviewLayer;
@@ -20,6 +26,9 @@ export class BranchPreviewView extends Component {
     private trail: string[] = [];
     private trailEdges: BranchEdge[] = [];
     private includeSources = false;
+    private page = 1;
+    private pages = 1;
+    private retained = false;
     private alpha = 0;
     private placementKey = "";
 
@@ -32,11 +41,14 @@ export class BranchPreviewView extends Component {
         this.ensureRoot();
     }
 
-    show(branch: NeighborBranch, trail: string[], trailEdges: BranchEdge[], includeSources: boolean): void {
+    show(branch: NeighborBranch, trail: string[], trailEdges: BranchEdge[], includeSources: boolean, state: PreviewState): void {
         this.branch = branch;
         this.trail = [...trail];
         this.trailEdges = [...trailEdges];
         this.includeSources = includeSources;
+        this.page = state.page;
+        this.pages = state.pages;
+        this.retained = state.retained;
         this.ensureRoot();
         this.renderPanel();
         this.layer.show(branch, trail, trailEdges);
@@ -80,6 +92,9 @@ export class BranchPreviewView extends Component {
         this.branch = undefined;
         this.trail = [];
         this.trailEdges = [];
+        this.page = 1;
+        this.pages = 1;
+        this.retained = false;
         if (this.root) {
             this.root.hidden = true;
             this.root.style.opacity = "0";
@@ -120,6 +135,9 @@ export class BranchPreviewView extends Component {
         this.root.dataset.total = String(this.branch.total);
         this.root.dataset.hidden = String(this.branch.hidden);
         this.root.dataset.includeSources = String(this.includeSources);
+        this.root.dataset.page = String(this.page);
+        this.root.dataset.pages = String(this.pages);
+        this.root.dataset.retained = String(this.retained);
         this.root.classList.toggle("is-dense", this.branch.nodes.length > 9);
 
         const header = this.root.createDiv({ cls: "eg-branch-preview-header" });
@@ -170,16 +188,22 @@ export class BranchPreviewView extends Component {
     private renderControls(): void {
         if (!this.root) return;
         const controls = this.root.createDiv({ cls: "eg-branch-preview-controls" });
-        this.addButton(controls, "上一批", "page-prev", () => this.callbacks.page(-1));
-        this.addButton(controls, "下一批", "page-next", () => this.callbacks.page(1));
-        this.addButton(controls, "保留这一层", "retain", () => this.callbacks.retain());
+        if (this.pages > 1) {
+            this.addButton(controls, "上一批", "page-prev", () => this.callbacks.page(-1), this.page <= 1);
+            this.addButton(controls, "下一批", "page-next", () => this.callbacks.page(1), this.page >= this.pages);
+            const indicator = controls.createDiv({ cls: "eg-branch-preview-page", text: `第 ${this.page} / ${this.pages} 页` });
+            indicator.dataset.pageIndicator = "true";
+        }
+        this.addButton(controls, this.retained ? "已保留" : "保留这一层", "retain", () => this.callbacks.retain(), this.retained);
         this.addButton(controls, this.includeSources ? "隐藏来源" : "显示来源", "sources", () => this.callbacks.toggleSources());
     }
 
-    private addButton(parent: HTMLElement, text: string, action: string, callback: () => void): void {
+    private addButton(parent: HTMLElement, text: string, action: string, callback: () => void, disabled = false): void {
         const button = parent.createEl("button", { cls: "eg-branch-preview-action", text });
         button.type = "button";
         button.dataset.action = action;
+        button.disabled = disabled;
+        button.setAttribute("aria-disabled", String(disabled));
         button.addEventListener("click", event => {
             event.preventDefault();
             callback();

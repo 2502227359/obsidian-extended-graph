@@ -6,6 +6,7 @@ export interface RelationOccurrence {
     excerpt: string;
     original: string;
     property?: string;
+    alias?: string;
 }
 
 export interface RelationGroup {
@@ -42,6 +43,7 @@ function describeSource(reference: Reference, cache: CachedMetadata, lines: stri
         excerpt: line ?? reference.original,
         original: reference.original,
         property,
+        alias: reference.original.includes("|") || /^!?\[[^\]]*\]\(/.test(reference.original) ? reference.displayText?.trim() : undefined,
     };
 }
 

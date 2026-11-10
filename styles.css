@@ -162,6 +162,8 @@
 }
 
 .eg-relations-count,
+.eg-relations-location,
+.eg-relations-status,
 .eg-relations-direction,
 .eg-relations-source {
     color: var(--text-muted);
@@ -172,6 +174,14 @@
     overflow: auto;
     min-height: 0;
     overscroll-behavior: contain;
+}
+
+.eg-relations-status {
+    height: 1.5em;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .eg-relations-pair {

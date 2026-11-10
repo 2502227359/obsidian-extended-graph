@@ -206,14 +206,30 @@ export class BranchExplorer extends Component {
         if (this.noteMode) return;
         const focus = this.trail[this.trail.length - 1];
         if (!focus) return;
-        this.branch = this.queryBranch(focus);
+        const branch = this.queryBranch(focus);
+        const page = this.clampPage(branch.total);
+        const pageChanged = page !== this.page;
+        this.page = page;
+        this.branch = pageChanged ? this.queryBranch(focus) : branch;
         this.trailEdges = this.edgesAlongTrail();
         const regions = new Set(this.regions);
         this.layoutPoint = this.pointerPoint ? { ...this.pointerPoint } : undefined;
         this.blockedHover = undefined;
-        this.preview.show(this.branch, this.trail, this.trailEdges, this.includeSources);
+        this.preview.show(this.branch, this.trail, this.trailEdges, this.includeSources, {
+            page: this.page + 1,
+            pages: this.pageCount(this.branch.total),
+            retained: this.expansions.anchors.has(this.branch.anchor),
+        });
         this.regions = regions;
         this.instances.renderer.changed();
+    }
+
+    private pageCount(total: number): number {
+        return Math.max(1, Math.ceil(total / 20));
+    }
+
+    private clampPage(total: number): number {
+        return Math.max(0, Math.min(this.pageCount(total) - 1, this.page));
     }
 
     private edgesAlongTrail(): BranchEdge[] {
@@ -362,8 +378,8 @@ export class BranchExplorer extends Component {
 
     private changePage(delta: number): void {
         if (!this.branch) return;
-        const last = Math.max(0, Math.ceil(this.branch.total / 20) - 1);
-        this.page = Math.max(0, Math.min(last, this.page + delta));
+        this.page += delta;
+        this.page = this.clampPage(this.branch.total);
         this.drawBranch();
     }
 

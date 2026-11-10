@@ -16,6 +16,7 @@ export class RelationsUI extends Component {
     private root: HTMLDivElement;
     private body: HTMLDivElement;
     private count: HTMLDivElement;
+    private status: HTMLDivElement;
     private groups: RelationGroup[] = [];
     private revision = 0;
     private interaction = { preview: 0, direct: 0, navigate: 0 };
@@ -28,6 +29,7 @@ export class RelationsUI extends Component {
     private directPreviewMode: boolean;
     private pendingAltRelease: boolean;
     private previewTarget?: HTMLElement;
+    private cancelFeedback?: () => void;
 
     constructor(private instances: GraphInstances, private neighborPath: string, anchorPath?: string, private initialPreviewEvent?: MouseEvent) {
         super();
@@ -83,14 +85,18 @@ export class RelationsUI extends Component {
             .onClick(() => this.instances.graphEventsDispatcher.removeChild(this))
             .extraSettingsEl.addClass("eg-relations-close");
         this.count = this.root.createDiv({ cls: "eg-relations-count" });
+        this.status = this.root.createDiv({ cls: "eg-relations-status", attr: { role: "status", "aria-live": "polite" } });
+        this.root.setAttribute("aria-busy", "false");
         this.body = this.root.createDiv({ cls: "eg-relations-body" });
     }
 
     private async refresh(): Promise<void> {
         const revision = ++this.revision;
+        const stopFeedback = this.trackLocation(this.root, () => this.active && revision === this.revision, "正在刷新关联…");
         try {
             const groups = await readRelations(ExtendedGraphInstances.app, this.centerPath, this.neighborPath);
             if (!this.active || revision !== this.revision) return;
+            this.cancelFeedback?.();
             this.clearPreviews();
             this.groups = groups;
             this.render();
@@ -99,12 +105,23 @@ export class RelationsUI extends Component {
             if (event && first && await this.followAnchor(event, first, true)) this.initialPreviewEvent = undefined;
         } catch (error) {
             if (!this.active || revision !== this.revision) return;
+            this.cancelFeedback?.();
+            this.clearPreviews();
+            this.groups = [];
+            this.count.setText("关联暂不可用");
+            this.status.empty();
+            this.root.setAttribute("aria-busy", "false");
             this.body.setText("关联读取失败，请关闭后重试。");
             console.error("读取局部图谱关联失败", error);
+        } finally {
+            stopFeedback();
         }
     }
 
     private render(): void {
+        const open = new Set(Array.from(this.body.querySelectorAll<HTMLDetailsElement>("details[open]")).map(item => item.dataset.key));
+        const selected = this.body.querySelector<HTMLElement>("[aria-current]")?.dataset.key;
+        const scroll = this.body.scrollTop;
         this.root.dataset.center = this.centerPath;
         this.root.dataset.neighbor = this.neighborPath;
         this.body.empty();
@@ -114,20 +131,39 @@ export class RelationsUI extends Component {
         if (this.pinnedByPanel) this.body.createDiv({ cls: "eg-relations-direction", text: "查看关联期间固定图谱中心，关闭面板后恢复。" });
         if (!this.groups.length) this.body.createEl("p", { text: "这两个文件当前没有可解析的直接引用。" });
         this.groups.forEach((group, index) => this.renderGroup(group, index));
+        this.body.querySelectorAll<HTMLDetailsElement>("details").forEach(item => { item.open = open.has(item.dataset.key); });
+        const anchor = Array.from(this.body.querySelectorAll<HTMLAnchorElement>("a[data-key]")).find(item => item.dataset.key === selected);
+        if (anchor) this.selectLocation(anchor);
+        else this.status.empty();
+        this.body.scrollTop = scroll;
     }
 
     private renderGroup(group: RelationGroup, index: number): void {
         const card = this.body.createDiv({ cls: "eg-relations-group" });
-        card.createDiv({ cls: "eg-relations-direction", text: `${this.fileName(group.sourcePath)} → ${this.fileName(group.targetPath)} · ${group.occurrences.length} 次引用` });
-        const target = card.createEl("a", { cls: "eg-relations-target", text: group.label, href: "#" });
+        const key = JSON.stringify([group.direction, group.sourcePath, group.targetPath, group.subpath]);
+        card.dataset.key = key;
+        card.createDiv({ cls: "eg-relations-direction", text: `${group.direction === "outgoing" ? "中心 → 关联笔记" : "关联笔记 → 中心"} · ${group.occurrences.length} 次引用` });
+        const aliases = [...new Set(group.occurrences.map(item => item.alias).filter((alias): alias is string => !!alias && alias !== group.label))];
+        const target = card.createEl("a", { cls: "eg-relations-target", text: aliases[0] ?? group.label, href: "#" });
+        if (aliases.length) card.createDiv({ cls: "eg-relations-location", text: group.label });
+        if (aliases.length > 1) {
+            const names = card.createEl("details", { cls: "eg-relations-aliases" });
+            names.dataset.key = key + ":aliases";
+            names.createEl("summary", { text: `其他名称 · ${aliases.length - 1}` });
+            names.createDiv({ text: aliases.slice(1).join("、") });
+        }
         target.dataset.group = String(index);
         target.dataset.kind = "target";
+        target.dataset.key = key + ":target";
+        target.dataset.subpath = group.subpath;
+        target.title = `${group.targetPath}${group.subpath}`;
         if (this.directPreviewMode && group.status !== "valid") target.title = "目标未指定有效段落，预览第一处引用原文";
         if (["missing", "ambiguous"].includes(group.status)) {
             target.setAttribute("aria-disabled", "true");
             card.createDiv({ cls: "eg-relations-warning", text: group.status === "missing" ? "定位已失效，可展开查看引用原文。" : "目标存在同名标题，需核对原链接。" });
         }
         const details = card.createEl("details");
+        details.dataset.key = key + ":sources";
         details.createEl("summary", { text: `引用原文：${[...new Set(group.occurrences.map(item => item.heading))].join("、")}` });
         group.occurrences.forEach((occurrence, occurrenceIndex) => this.renderOccurrence(details, occurrence, index, occurrenceIndex));
     }
@@ -139,6 +175,14 @@ export class RelationsUI extends Component {
         source.dataset.group = String(group);
         source.dataset.occurrence = String(index);
         source.dataset.kind = "source";
+        const signature = this.occurrenceKey(occurrence);
+        if (this.groups[group].occurrences.filter(item => this.occurrenceKey(item) === signature).length === 1) {
+            source.dataset.key = parent.closest<HTMLElement>(".eg-relations-group")!.dataset.key + ":source:" + signature;
+        }
+    }
+
+    private occurrenceKey(occurrence: RelationOccurrence): string {
+        return JSON.stringify([occurrence.original, occurrence.heading, occurrence.property, occurrence.excerpt]);
     }
 
     private async followLink(event: MouseEvent, preview: boolean): Promise<void> {
@@ -162,21 +206,60 @@ export class RelationsUI extends Component {
         const revision = this.revision;
         const kind = preview ? (this.directPreviewMode ? "direct" : "preview") : "navigate";
         const interaction = ++this.interaction[kind];
+        const stopFeedback = this.trackLocation(anchor, () => this.isCurrent(revision, kind, interaction) && anchor.isConnected);
         try {
             const location = await this.resolveLocation(anchor);
-            if (!this.active || revision !== this.revision || interaction !== this.interaction[kind] || !anchor.isConnected) return false;
+            if (!this.isCurrent(revision, kind, interaction) || !anchor.isConnected) return false;
             if (!location) {
+                this.status.setText("无法准确定位，请展开引用原文核对。");
                 if (!preview) new Notice("无法准确定位，请重新查看关联或展开引用原文。");
                 return false;
             }
+            this.selectLocation(anchor);
             if (preview) this.preview(event, anchor, location);
             else await ExtendedGraphInstances.app.workspace.openLinkText(location.linktext, location.sourcePath, "tab", { eState: location.state });
             return true;
         } catch (error) {
+            if (this.isCurrent(revision, kind, interaction)) this.status.setText("定位失败，请重试或查看引用原文。");
             if (!preview) new Notice("无法打开关联位置，请重试。");
             console.error("打开局部图谱关联失败", error);
             return false;
+        } finally {
+            stopFeedback();
         }
+    }
+
+    private trackLocation(anchor: HTMLElement, current: () => boolean, message = "正在定位…"): () => void {
+        this.cancelFeedback?.();
+        const timer = window.setTimeout(() => {
+            if (!current()) return;
+            this.root.setAttribute("aria-busy", "true");
+            anchor.closest(".eg-relations-group")?.addClass("is-loading");
+            this.status.setText(message);
+        }, 120);
+        const stop = () => {
+            window.clearTimeout(timer);
+            if (this.cancelFeedback !== stop) return;
+            this.cancelFeedback = undefined;
+            this.root.setAttribute("aria-busy", "false");
+            this.body.querySelectorAll(".is-loading").forEach(card => card.removeClass("is-loading"));
+            if (["正在定位…", "正在刷新关联…"].includes(this.status.textContent ?? "")) this.status.empty();
+        };
+        this.cancelFeedback = stop;
+        return stop;
+    }
+
+    private isCurrent(revision: number, kind: keyof RelationsUI["interaction"], interaction: number): boolean {
+        return this.active && revision === this.revision && interaction === this.interaction[kind];
+    }
+
+    private selectLocation(anchor: HTMLElement): void {
+        this.body.querySelectorAll("[aria-current]").forEach(item => item.removeAttribute("aria-current"));
+        anchor.setAttribute("aria-current", "location");
+        const active = anchor.closest(".eg-relations-group");
+        this.body.querySelectorAll(".eg-relations-group").forEach(card => card.classList.toggle("is-previewing", card === active));
+        const source = anchor.dataset.kind === "source" ? "引用原文" : "目标位置";
+        this.status.setText(`当前选择：${source} · ${anchor.textContent}`);
     }
 
     private directPreviewAnchor(anchor: HTMLAnchorElement): HTMLAnchorElement {
@@ -209,8 +292,6 @@ export class RelationsUI extends Component {
     private preview(event: MouseEvent, anchor: HTMLElement, location: LinkLocation): void {
         this.clearPreviews();
         if (this.directPreviewMode) {
-            const active = anchor.closest(".eg-relations-group");
-            this.body.querySelectorAll(".eg-relations-group").forEach(card => card.classList.toggle("is-previewing", card === active));
             // 点击预览使用独立触发元素，避免悬浮插件短暂屏蔽刚关闭的同一目标。
             this.previewTarget = anchor.createSpan({ attr: { "aria-hidden": "true" } });
         }
@@ -236,6 +317,8 @@ export class RelationsUI extends Component {
 
     private fileName(path: string): string {
         const file = ExtendedGraphInstances.app.vault.getAbstractFileByPath(path);
+        const other = ExtendedGraphInstances.app.vault.getAbstractFileByPath(path === this.centerPath ? this.neighborPath : this.centerPath);
+        if (file instanceof TFile && other instanceof TFile && file.basename === other.basename) return file.path;
         return file instanceof TFile ? file.basename : path;
     }
 
@@ -250,6 +333,7 @@ export class RelationsUI extends Component {
         this.active = false;
         this.initialPreviewEvent = undefined;
         this.pendingAltRelease = false;
+        this.cancelFeedback?.();
         ++this.revision;
         this.clearPreviews();
         this.root?.remove();

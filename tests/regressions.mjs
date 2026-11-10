@@ -21,6 +21,8 @@ import { branchesData, branchesSources } from './branches-data.mjs';
 import { branchesHeart } from './branches-heart.mjs';
 import { relationsCommands, relationsCommandActions, relationsCommandTargets } from './relations-commands.mjs';
 import { relationsDirect, relationsDirectSource, relationsDirectBranches, relationsDirectRace } from './relations-direct.mjs';
+import { relationsPolishLabels, relationsPolishFeedback, relationsPolishRefresh } from './relations-polish.mjs';
+import { branchControlsPolish } from './branch-controls-polish.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -30,6 +32,10 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
+    '关系小图分页与保留按钮反馈真实状态': branchControlsPolish,
+    '关联列表使用原文别名并保留标题与反向证据': relationsPolishLabels,
+    '关联定位反馈与刷新失败不残留旧状态': relationsPolishFeedback,
+    '关联更新保持阅读位置并区分同名笔记': relationsPolishRefresh,
     'Alt单击局部节点直达首处并切换关联浮窗': relationsDirect,
     'Alt单击整篇反链定位引用原文': relationsDirectSource,
     'Alt单击双处临时节点并保留拖动分流': relationsDirectBranches,
