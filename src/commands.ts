@@ -1,7 +1,9 @@
 import { GraphView, LocalGraphView } from "obsidian-typings";
 import { Pinner, ExtendedGraphInstances, t } from "./internal";
 import ExtendedGraphPlugin from "./main";
-import { ItemView } from "obsidian";
+import { ItemView, TFile } from "obsidian";
+import { GraphInstances } from "./pluginInstances";
+import { GraphNodeModal } from "./ui/modals/graphNodeModal";
 
 export function getActiveGraphView(plugin: ExtendedGraphPlugin): GraphView | LocalGraphView | undefined {
     const itemView = plugin.app.workspace.getActiveViewOfType(ItemView);
@@ -19,6 +21,97 @@ export function addCommands(plugin: ExtendedGraphPlugin) {
     addPinCommands(plugin);
     addSelectCommands(plugin);
     addFocusCommands(plugin);
+    addRelationCommands(plugin);
+}
+
+function getActiveLocalGraph(plugin: ExtendedGraphPlugin): GraphInstances | undefined {
+    const view = getActiveGraphView(plugin);
+    if (view?.getViewType() !== "localgraph") return;
+    const instances = ExtendedGraphInstances.graphsManager.allInstances.get(view.leaf.id);
+    if (instances?.graphEventsDispatcher.inputsManager && instances.graphEventsDispatcher.branches) return instances;
+}
+
+interface RelationCommand {
+    id: string;
+    name: string;
+    run: (instances: GraphInstances) => void;
+    available?: (instances: GraphInstances) => boolean;
+}
+
+type NodeRelationAction = "show" | "expand" | "collapse";
+
+function addRelationCommands(plugin: ExtendedGraphPlugin): void {
+    const commands: RelationCommand[] = [
+        { id: "toggle-hover-relations", name: "切换悬浮关联预览", run: i => i.graphEventsDispatcher.branches!.toggle() },
+        { id: "toggle-relation-sources", name: "切换来源关联显示", run: i => i.graphEventsDispatcher.branches!.toggleSources() },
+        { id: "clear-manual-branches", name: "收起全部手动分支", run: i => i.graphEventsDispatcher.branches!.clearManual(),
+            available: i => i.graphEventsDispatcher.branches!.expansions.anchors.size > 0 },
+        { id: "keep-preview-branch", name: "保留当前预览这一层", run: i => i.graphEventsDispatcher.branches!.keepPreview(),
+            available: i => { const b = i.graphEventsDispatcher.branches!; return !!b.previewAnchor && !b.expansions.anchors.has(b.previewAnchor); } },
+        { id: "close-node-relations", name: "关闭关联位置面板", available: i => !!i.graphEventsDispatcher.relationsUI?._loaded,
+            run: i => { const d = i.graphEventsDispatcher; d.removeChild(d.relationsUI!); d.relationsUI = undefined; } },
+    ];
+    const nodeCommands: [string, string, NodeRelationAction][] = [
+        ["show-node-relations", "查看节点与中心关联", "show"],
+        ["expand-node-branch", "展开节点一层关联", "expand"],
+        ["collapse-node-branch", "收起节点这一层关联", "collapse"],
+    ];
+    for (const [id, name, action] of nodeCommands) commands.push({
+        id, name,
+        available: i => canRunNodeRelation(i, action),
+        run: i => chooseRelationNode(plugin, i, action),
+    });
+    for (const command of commands) registerRelationCommand(plugin, command);
+}
+
+function registerRelationCommand(plugin: ExtendedGraphPlugin, command: RelationCommand): void {
+    plugin.addCommand({
+        id: command.id,
+        name: `局部关联：${command.name}`,
+        checkCallback: checking => {
+            const instances = getActiveLocalGraph(plugin);
+            if (!instances || (command.available && !command.available(instances))) return false;
+            if (!checking) command.run(instances);
+            return true;
+        },
+    });
+}
+
+function relationFiles(instances: GraphInstances, action: NodeRelationAction): TFile[] {
+    const branches = instances.graphEventsDispatcher.branches!;
+    const paths = action === "collapse" ? [...branches.expansions.anchors]
+        : [...new Set([...instances.renderer.nodes.map(node => node.id), ...branches.getPreviewNodes()])];
+    return paths.filter(path => action !== "expand" || !branches.expansions.anchors.has(path))
+        .map(path => ExtendedGraphInstances.app.vault.getAbstractFileByPath(path))
+        .filter((file): file is TFile => file instanceof TFile && file.extension === "md")
+        .sort((a, b) => a.path.localeCompare(b.path));
+}
+
+function explicitRelationNode(instances: GraphInstances): string | undefined {
+    const hover = instances.graphEventsDispatcher.branches!.getHoveredNode();
+    if (hover) return hover;
+    const selected = Object.keys(instances.nodesSet.selectedNodes);
+    if (selected.length === 1) return selected[0];
+}
+
+function canRunNodeRelation(instances: GraphInstances, action: NodeRelationAction): boolean {
+    const target = explicitRelationNode(instances), files = relationFiles(instances, action);
+    return target ? files.some(file => file.path === target) : files.length > 0;
+}
+
+function chooseRelationNode(plugin: ExtendedGraphPlugin, instances: GraphInstances, action: NodeRelationAction): void {
+    const root = (instances.view as LocalGraphView).file?.path;
+    const files = relationFiles(instances, action), target = explicitRelationNode(instances);
+    const apply = (file: TFile) => {
+        if (getActiveLocalGraph(plugin) !== instances || (instances.view as LocalGraphView).file?.path !== root) return;
+        if (!relationFiles(instances, action).includes(file)) return;
+        if (action === "show") instances.graphEventsDispatcher.inputsManager.showRelations(file.path);
+        else instances.graphEventsDispatcher.branches!.toggleBranch(file.path);
+    };
+    if (target) {
+        const file = files.find(file => file.path === target);
+        if (file) apply(file);
+    } else new GraphNodeModal(plugin.app, files, apply).open();
 }
 
 function addEnableCommands(plugin: ExtendedGraphPlugin) {

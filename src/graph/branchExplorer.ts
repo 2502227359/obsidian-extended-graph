@@ -285,7 +285,19 @@ export class BranchExplorer extends Component {
         this.renderManual();
     }
 
-    private keepPreview(): void {
+    get previewAnchor(): string | undefined {
+        return this.noteMode ? undefined : this.branch?.anchor;
+    }
+
+    getHoveredNode(): string | undefined {
+        return this.lastHover?.path ?? this.instances.renderer.getHighlightNode()?.id;
+    }
+
+    getPreviewNodes(): string[] {
+        return this.previewAnchor ? [...new Set([...this.trail, ...this.branch!.nodes])] : [];
+    }
+
+    keepPreview(): void {
         if (!this.branch) return;
         const anchor = this.branch.anchor;
         if (this.expansions.anchors.has(anchor)) return;
@@ -299,9 +311,12 @@ export class BranchExplorer extends Component {
         if (base.nodes[path]) return [];
         const graph = this.expansions.compose(base, id => this.queryBranch(id, true));
         const adjacent = new Map<string, BranchEdge[]>();
-        for (const [source, node] of Object.entries(graph.nodes)) for (const target of Object.keys(node.links)) {
-            const edge = { source, target };
-            for (const id of [source, target]) adjacent.set(id, [...(adjacent.get(id) ?? []), edge]);
+        const edges = [
+            ...Object.entries(graph.nodes).flatMap(([source, node]) => Object.keys(node.links).map(target => ({ source, target }))),
+            ...this.trailEdges, ...(this.branch?.edges ?? []),
+        ];
+        for (const edge of edges) {
+            for (const id of [edge.source, edge.target]) adjacent.set(id, [...(adjacent.get(id) ?? []), edge]);
         }
         const previous = new Map<string, { path: string; edge: BranchEdge }>();
         const queue = [path], visited = new Set(queue);

@@ -19,6 +19,7 @@ import { branchesHover, branchesExplore, branchesHit, branchesIsolation, branche
 import { centerPin } from './center-pin.mjs';
 import { branchesData, branchesSources } from './branches-data.mjs';
 import { branchesHeart } from './branches-heart.mjs';
+import { relationsCommands, relationsCommandActions, relationsCommandTargets } from './relations-commands.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -28,6 +29,9 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
+    '局部关联命令可绑定快捷键并隔离活动视图': relationsCommands,
+    '局部关联命令覆盖节点引用分支与预览操作': relationsCommandActions,
+    '局部关联命令节点选择与过期上下文隔离': relationsCommandTargets,
     '悬浮关联开关同步控制两处临时预览': branchesHover,
     '递归悬浮手动共享分支与原生预览分流': branchesExplore,
     '主图临时节点点击与实际引用端点': branchesHit,
