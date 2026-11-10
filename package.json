@@ -1,6 +1,6 @@
 {
 	"name": "extended-graph",
-	"version": "1.0.0",
+	"version": "2.7.7",
 	"description": "Extended Graph plugin for Obsidian (https://obsidian.md)",
 	"main": "main.js",
 	"scripts": {
@@ -12,7 +12,7 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
 	"keywords": [],
-	"author": "ElsaTam",
+	"author": "2502227359",
 	"license": "GPL-3.0-only",
 	"devDependencies": {
 		"@types/node": "^18.17.0 || >=20.1.0",
