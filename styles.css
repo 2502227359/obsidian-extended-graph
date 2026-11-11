@@ -91,6 +91,64 @@
     display: none;
 }
 
+.eg-preview-reserved {
+    --eg-preview-rail-width: 344px;
+}
+
+.eg-preview-reserved > canvas,
+.eg-preview-reserved > iframe {
+    width: calc(100% - var(--eg-preview-rail-width)) !important;
+}
+
+.eg-preview-viewport {
+    position: absolute;
+    inset: 0 var(--eg-preview-rail-width) 0 0;
+    pointer-events: none;
+}
+
+.eg-preview-rail {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: var(--eg-preview-rail-width);
+    border-left: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    pointer-events: none;
+}
+
+.eg-preview-idle {
+    padding: 64px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.eg-preview-reserved:has(> .eg-branch-preview:not([hidden])) > .eg-preview-rail .eg-preview-idle {
+    visibility: hidden;
+}
+
+.eg-preview-reserved > .eg-local-tools {
+    right: calc(64px + var(--eg-preview-rail-width));
+}
+
+.eg-preview-reserved > .graph-controls,
+.eg-preview-reserved > .extended-graph-layers {
+    right: calc(12px + var(--eg-preview-rail-width));
+}
+
+.eg-preview-reserved > .eg-relations-panel {
+    width: 320px;
+}
+
+.eg-branch-preview.is-floating .eg-branch-preview-header {
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.eg-branch-preview.is-dragging .eg-branch-preview-header {
+    cursor: grabbing;
+}
+
 .eg-branch-preview.is-stacked .eg-branch-preview-svg {
     min-height: 100px;
     max-height: 220px;

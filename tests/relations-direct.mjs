@@ -114,10 +114,11 @@ async function showBranch(leaf, path) {
     await waitFor(() => leaf.view.renderer.hanger.children.find(child => child.name === 'eg-branch-layer')?.alpha > 0.9, '临时层应完成淡入');
 }
 
-export async function relationsDirectBranches(plugin) {
+export async function relationsDirectBranches(plugin, width) {
     const { files, leaf } = await fixture(plugin), { app } = plugin, requests = [];
     const ref = app.workspace.on('hover-link', request => { if (request.source === RELATIONS_HOVER_SOURCE) requests.push(request); });
     try {
+        if (width) { leaf.view.contentEl.style.width = width + 'px'; leaf.view.renderer.onResize(); }
         leaf.view.contentEl.querySelector('.eg-hover-branches-toggle').click();
         await showBranch(leaf, files[1].path);
         leaf.view.contentEl.querySelector(`.eg-branch-preview g[data-path="${files[2].path}"]`)

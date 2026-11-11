@@ -55,11 +55,12 @@ export async function branchesExplore(plugin) {
     }
 }
 
-export async function branchesHit(plugin) {
+export async function branchesHit(plugin, width) {
     const files = await createFixture(plugin.app);
     const leaf = await openFixture(plugin, files);
     const originalLeaves = new Set(plugin.app.workspace.getLeavesOfType('markdown').map(item => item.id));
     try {
+        if (width) { leaf.view.contentEl.style.width = width + 'px'; leaf.view.renderer.onResize(); }
         leaf.view.contentEl.querySelector('.eg-hover-branches-toggle').click();
         leaf.view.renderer.onNodeHover(new MouseEvent('mousemove', { clientX: 500, clientY: 350 }), files[1].path, '');
         await waitFor(() => leaf.view.contentEl.querySelector('.eg-branch-preview:not([hidden])'), '应显示预览');
@@ -207,11 +208,12 @@ export async function branchesHover(plugin) {
     }
 }
 
-export async function branchesDrag(plugin) {
+export async function branchesDrag(plugin, width) {
     const files = await createFixture(plugin.app);
     const leaf = await openFixture(plugin, files);
     const before = new Set(plugin.app.workspace.getLeavesOfType('markdown').map(item => item.id));
     try {
+        if (width) { leaf.view.contentEl.style.width = width + 'px'; leaf.view.renderer.onResize(); }
         const renderer = leaf.view.renderer, canvas = renderer.interactiveEl;
         leaf.view.contentEl.querySelector('.eg-hover-branches-toggle').click();
         renderer.onNodeHover(new MouseEvent('mousemove', { clientX: 500, clientY: 350 }), files[1].path, '');

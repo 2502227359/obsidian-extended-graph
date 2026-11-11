@@ -140,6 +140,7 @@ export class BranchExplorer extends Component {
     toggle(): void {
         this.enabled = !this.enabled;
         this.clearPreview();
+        this.preview.setEnabled(this.enabled);
         this.oldUnhover?.call(this.instances.renderer);
         this.updateToggle();
     }

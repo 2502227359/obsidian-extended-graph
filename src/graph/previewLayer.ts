@@ -202,15 +202,6 @@ export class PreviewLayer {
         return node.core ? this.corePosition(path) : this.add(this.corePosition(this.anchor) ?? this.anchorOrigin, this.offsets.get(path));
     }
 
-    screenPosition(path: string): Point | undefined {
-        const node = this.nodes.get(path);
-        if (!node) return;
-        const global = node.group.getGlobalPosition();
-        const bounds = this.instances.renderer.interactiveEl.getBoundingClientRect();
-        const screen = this.instances.renderer.px.renderer.screen;
-        return { x: bounds.left + global.x * bounds.width / screen.width, y: bounds.top + global.y * bounds.height / screen.height };
-    }
-
     hitNode(event: MouseEvent): { path: string; edge?: BranchEdge } | undefined {
         if (!this.root || this.alpha < 0.05) return;
         const { x, y } = this.pointerPosition(event);

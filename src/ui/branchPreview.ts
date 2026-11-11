@@ -5,6 +5,7 @@ import { PreviewLayer } from "../graph/previewLayer";
 import type { PreviewCallbacks } from "../graph/previewLayer";
 import { nodeLabel } from "./nodeLabels";
 import { pathParse } from "../helpers/path";
+import { PreviewLayout } from "./previewLayout";
 
 export type { PreviewCallbacks, PreviewRegion } from "../graph/previewLayer";
 
@@ -22,6 +23,7 @@ interface PreviewState {
 /** 与主图临时层共享数据的局部关系小图。 */
 export class BranchPreviewView extends Component {
     private readonly layer: PreviewLayer;
+    private readonly layoutManager: PreviewLayout;
     private root?: HTMLDivElement;
     private svg?: SVGSVGElement;
     private branch?: NeighborBranch;
@@ -41,6 +43,7 @@ export class BranchPreviewView extends Component {
     constructor(private readonly instances: GraphInstances, private readonly callbacks: PreviewCallbacks) {
         super();
         this.layer = new PreviewLayer(instances, callbacks);
+        this.layoutManager = this.addChild(new PreviewLayout(instances, callbacks));
     }
 
     override onload(): void {
@@ -81,6 +84,10 @@ export class BranchPreviewView extends Component {
 
     onCSSChange(): void {
         this.layer.onCSSChange();
+    }
+
+    setEnabled(enabled: boolean): void {
+        this.layoutManager.setEnabled(enabled);
     }
 
     hitNode(event: MouseEvent): { path: string; edge?: BranchEdge } | undefined {
@@ -135,6 +142,7 @@ export class BranchPreviewView extends Component {
         this.root.setAttribute("aria-label", "悬浮关联预览");
         this.root.addEventListener("pointerenter", () => this.callbacks.hold("mini"));
         this.root.addEventListener("pointerleave", () => {
+            if (this.layoutManager.dragging) return;
             if (!this.root?.contains(this.root.ownerDocument.activeElement)) this.callbacks.leave("mini");
         });
         this.root.addEventListener("focusin", () => this.callbacks.hold("mini"));
@@ -145,6 +153,7 @@ export class BranchPreviewView extends Component {
         this.root.addEventListener("pointerdown", event => event.stopPropagation());
         this.root.addEventListener("contextmenu", event => event.stopPropagation());
         this.instances.view.contentEl.appendChild(this.root);
+        this.layoutManager.attach(this.root);
     }
 
     private renderPanel(): void {
@@ -161,6 +170,7 @@ export class BranchPreviewView extends Component {
         this.root.classList.toggle("is-dense", this.branch.nodes.length > 9);
 
         const header = this.root.createDiv({ cls: "eg-branch-preview-header" });
+        header.addEventListener("pointerdown", event => this.layoutManager.startDrag(event));
         header.createEl("strong", { text: "关联预览" });
         header.createDiv({ cls: "eg-branch-preview-count", text: this.countText() });
         this.renderTrail();
@@ -403,13 +413,14 @@ export class BranchPreviewView extends Component {
 
     private positionPanel(): void {
         if (!this.root || !this.branch || this.root.hidden) return;
+        this.layoutManager.sync();
         const bounds = this.instances.view.contentEl.getBoundingClientRect();
-        const point = this.layer.screenPosition(this.branch.anchor);
-        if (!point) return;
         const panel = this.instances.view.contentEl.querySelector<HTMLElement>(".eg-relations-panel");
+        if (this.layoutManager.docked) { this.positionDocked(bounds, panel); return; }
         const blocker = panel?.getBoundingClientRect();
         const key = `${bounds.width}:${bounds.height}:${blocker?.left ?? 0}:${blocker?.width ?? 0}:${blocker?.height ?? 0}`;
         if (this.placementKey === key) {
+            if (this.layoutManager.restorePosition()) return;
             const top = Number.parseFloat(this.root.style.top) || 12;
             const next = Math.min(top, Math.max(12, bounds.height - this.root.offsetHeight - 12));
             if (next !== top) this.root.style.top = `${next}px`;
@@ -423,15 +434,33 @@ export class BranchPreviewView extends Component {
         this.root.classList.remove("is-stacked");
         this.root.style.removeProperty("max-height");
         this.restoreRelationsHeight();
-        const width = Math.min(340, bounds.width - 24, blocker ? blocker.left - bounds.left - 24 : 340);
+        const width = Math.min(340, bounds.width - 88, blocker ? blocker.left - bounds.left - 24 : 340);
         this.root.style.width = `${Math.max(160, width)}px`;
         const height = Math.min(this.root.offsetHeight, bounds.height - 24);
-        let left = point.x - bounds.left + 24;
-        if (left + width > bounds.width - 12) left = point.x - bounds.left - width - 24;
+        let left = bounds.width - width - 64;
         if (blocker) left = Math.min(left, blocker.left - bounds.left - width - 12);
         this.root.style.left = `${Math.max(12, Math.min(bounds.width - width - 12, left))}px`;
-        this.root.style.top = `${Math.max(12, Math.min(bounds.height - height - 12, point.y - bounds.top - 40))}px`;
+        this.root.style.top = `${Math.max(12, Math.min(bounds.height - height - 12, 52))}px`;
+        this.layoutManager.restorePosition();
         this.placementKey = key;
+    }
+
+    private positionDocked(bounds: DOMRect, panel?: HTMLElement | null): void {
+        if (!this.root) return;
+        this.placementKey = "";
+        this.root.style.width = "320px";
+        this.root.style.left = `${bounds.width - 332}px`;
+        this.root.classList.toggle("is-stacked", !!panel);
+        if (!panel) {
+            this.restoreRelationsHeight();
+            this.root.style.top = "52px";
+            this.root.style.maxHeight = `${Math.max(100, bounds.height - 64)}px`;
+            return;
+        }
+        const available = Math.max(120, bounds.height - 76), height = Math.min(360, available * 0.5);
+        panel.style.maxHeight = `${available - height - 12}px`;
+        this.root.style.maxHeight = `${height}px`;
+        this.root.style.top = `${panel.getBoundingClientRect().bottom - bounds.top + 12}px`;
     }
 
     private stackPanels(panel: HTMLElement, bounds: DOMRect): void {
