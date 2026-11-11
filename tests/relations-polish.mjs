@@ -36,6 +36,7 @@ export async function relationsPolishLabels(plugin) {
         inputs.showRelations(files[1].path);
         await waitFor(() => leaf.view.contentEl.querySelectorAll('.eg-relations-group').length === 3, '应保留两处目标和整篇反链');
         const panel = leaf.view.contentEl.querySelector('.eg-relations-panel');
+        await Promise.all(panel.getAnimations().map(animation => animation.finished.catch(() => {})));
         const targets = [...panel.querySelectorAll('.eg-relations-target')];
         assert.deepEqual(targets.map(a => a.textContent), ['ACEI', 'ARB', '整篇引用'], '应使用真实链接别名提高辨识度');
         assert.equal(panel.querySelector('.eg-relations-location').textContent, '1.1 常用药物');

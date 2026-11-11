@@ -8,6 +8,7 @@
 .eg-hover-branches-toggle {
     flex-shrink: 0;
     border-radius: var(--eg-control-radius, 7px);
+    transition: color 120ms ease-out, background-color 120ms ease-out;
 }
 
 .eg-hover-branches-toggle.is-active {
@@ -87,6 +88,7 @@
     font-size: var(--font-ui-smaller);
     border-radius: var(--eg-control-radius, 7px);
     box-shadow: none;
+    transition: background-color 120ms ease-out;
 }
 
 .eg-branch-preview-svg {
@@ -157,6 +159,7 @@
     font-size: var(--font-ui-smaller);
     border-radius: var(--eg-control-radius, 7px);
     box-shadow: none;
+    transition: background-color 120ms ease-out, color 120ms ease-out;
 }
 
 .eg-branch-preview-action:disabled {
@@ -176,7 +179,8 @@
     border-color: color-mix(in srgb, var(--interactive-accent) 22%, transparent);
 }
 
-.eg-relations-panel {
+.eg-relations-panel,
+.eg-relations-exit {
     position: absolute;
     top: 52px;
     right: var(--size-4-3);
@@ -194,6 +198,10 @@
     text-align: start;
     overflow: hidden;
     min-height: 0;
+}
+
+.eg-relations-exit {
+    pointer-events: none;
 }
 
 .eg-relations-header {
@@ -276,6 +284,7 @@
     font-weight: 600;
     text-decoration: none;
     line-height: 1.45;
+    transition: color 100ms ease-out;
 }
 
 .eg-relations-target:hover {
@@ -334,6 +343,28 @@
 .extended-graph-settings .setting-item-description {
     line-height: 1.5;
     color: var(--text-muted);
+}
+
+.eg-graph-surface :is(.eg-hover-branches-toggle, .eg-branch-preview-action, .eg-branch-preview-trail-path, .eg-relations-close, .eg-relations-target, .eg-relations-source):focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.eg-graph-surface canvas:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: -2px;
+}
+
+.eg-branch-preview-node:focus-visible circle {
+    stroke: var(--text-normal);
+    stroke-width: 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .eg-graph-surface :is(.eg-hover-branches-toggle, .eg-branch-preview-action, .eg-branch-preview-trail-path, .eg-relations-target) {
+        transition: none;
+    }
 }
 
 body {

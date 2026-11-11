@@ -127,7 +127,14 @@ export class BranchPreviewView extends Component {
         this.root.setAttribute("role", "region");
         this.root.setAttribute("aria-label", "悬浮关联预览");
         this.root.addEventListener("pointerenter", () => this.callbacks.hold("mini"));
-        this.root.addEventListener("pointerleave", () => this.callbacks.leave("mini"));
+        this.root.addEventListener("pointerleave", () => {
+            if (!this.root?.contains(this.root.ownerDocument.activeElement)) this.callbacks.leave("mini");
+        });
+        this.root.addEventListener("focusin", () => this.callbacks.hold("mini"));
+        this.root.addEventListener("focusout", event => {
+            const next = event.relatedTarget as Node | null;
+            if (!(next?.nodeType && this.root?.contains(next)) && !this.root?.matches(":hover")) this.callbacks.leave("mini");
+        });
         this.root.addEventListener("pointerdown", event => event.stopPropagation());
         this.root.addEventListener("contextmenu", event => event.stopPropagation());
         this.instances.view.contentEl.appendChild(this.root);
@@ -246,11 +253,24 @@ export class BranchPreviewView extends Component {
         group.classList.add("eg-branch-preview-node");
         group.dataset.path = path;
         group.setAttribute("tabindex", "0");
+        group.setAttribute("role", "button");
+        group.setAttribute("aria-label", path);
         group.setAttribute("transform", `translate(${position.x} ${position.y})`);
 
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute("r", path === this.branch.anchor ? "15" : "12");
         group.appendChild(circle);
+        const label = this.createNodeLabel(path);
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        title.textContent = path;
+        group.appendChild(title);
+        group.classList.toggle("is-anchor", path === this.branch.anchor);
+        group.appendChild(label);
+        this.bindNode(group, path);
+        this.svg.appendChild(group);
+    }
+
+    private createNodeLabel(path: string): SVGTextElement {
         const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
         const name = Array.from(this.displayName(path));
         for (let offset = 0; offset < name.length; offset += 8) {
@@ -260,13 +280,12 @@ export class BranchPreviewView extends Component {
             line.textContent = name.slice(offset, offset + 8).join("");
             label.appendChild(line);
         }
-        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-        title.textContent = path;
-        group.appendChild(title);
-        group.classList.toggle("is-anchor", path === this.branch.anchor);
         label.setAttribute("text-anchor", "middle");
         label.setAttribute("dy", "29");
-        group.appendChild(label);
+        return label;
+    }
+
+    private bindNode(group: SVGGElement, path: string): void {
         group.addEventListener("pointerenter", event => this.callbacks.enter(path, event, "mini"));
         group.addEventListener("click", event => {
             if (event.button !== 0) return;
@@ -277,7 +296,17 @@ export class BranchPreviewView extends Component {
             const edge = this.getRelationEdge(path);
             if (edge) this.callbacks.relations(edge.source, edge.target);
         });
-        this.svg.appendChild(group);
+        group.addEventListener("keydown", event => {
+            if (!["Enter", " "].includes(event.key)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.repeat) return;
+            const bounds = group.getBoundingClientRect();
+            this.callbacks.open(path, new MouseEvent("click", {
+                button: 0, clientX: bounds.left + bounds.width / 2, clientY: bounds.top + bounds.height / 2,
+                altKey: event.altKey, ctrlKey: event.ctrlKey, metaKey: event.metaKey, shiftKey: event.shiftKey,
+            }));
+        });
     }
 
     private layout(paths: string[]): Map<string, Point> {

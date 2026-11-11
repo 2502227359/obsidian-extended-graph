@@ -49,7 +49,7 @@ function addRelationCommands(plugin: ExtendedGraphPlugin): void {
         { id: "keep-preview-branch", name: "保留当前预览这一层", run: i => i.graphEventsDispatcher.branches!.keepPreview(),
             available: i => { const b = i.graphEventsDispatcher.branches!; return !!b.previewAnchor && !b.expansions.anchors.has(b.previewAnchor); } },
         { id: "close-node-relations", name: "关闭关联位置面板", available: i => !!i.graphEventsDispatcher.relationsUI?._loaded,
-            run: i => { const d = i.graphEventsDispatcher; d.removeChild(d.relationsUI!); d.relationsUI = undefined; } },
+            run: i => { const d = i.graphEventsDispatcher; d.relationsUI!.closePanel(); d.relationsUI = undefined; } },
     ];
     const nodeCommands: [string, string, NodeRelationAction][] = [
         ["show-node-relations", "查看节点与中心关联", "show"],

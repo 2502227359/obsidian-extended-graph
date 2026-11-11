@@ -31,6 +31,8 @@ export class RelationsUI extends Component {
     private pendingAltRelease: boolean;
     private previewTarget?: HTMLElement;
     private cancelFeedback?: () => void;
+    private animateExit = false;
+    private entrance?: Animation;
 
     constructor(private instances: GraphInstances, private neighborPath: string, anchorPath?: string, private initialPreviewEvent?: MouseEvent) {
         super();
@@ -59,6 +61,12 @@ export class RelationsUI extends Component {
             if (anchor && !(related?.nodeType && anchor.contains(related))) ++this.interaction.preview;
         });
         this.registerDomEvent(this.root, "click", event => { void this.followLink(event, false); });
+        this.registerDomEvent(this.root, "keydown", event => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            event.stopPropagation();
+            this.closePanel();
+        });
         const app = ExtendedGraphInstances.app;
         this.registerEvent(app.metadataCache.on("changed", file => {
             if ([this.centerPath, this.neighborPath].includes(file.path)) void this.refresh();
@@ -83,13 +91,16 @@ export class RelationsUI extends Component {
         const header = this.root.createDiv({ cls: "eg-relations-header" });
         header.createEl("strong", { text: "关联位置" });
         new ExtraButtonComponent(header).setIcon("x").setTooltip("关闭关联面板")
-            .onClick(() => this.instances.graphEventsDispatcher.removeChild(this))
+            .onClick(() => this.closePanel())
             .extraSettingsEl.addClass("eg-relations-close");
         this.context = this.root.createDiv({ cls: "eg-relations-context" });
         this.count = this.root.createDiv({ cls: "eg-relations-count" });
         this.status = this.root.createDiv({ cls: "eg-relations-status", attr: { role: "status", "aria-live": "polite" } });
         this.root.setAttribute("aria-busy", "false");
         this.body = this.root.createDiv({ cls: "eg-relations-body" });
+        if (!this.reduceMotion()) this.entrance = this.root.animate([
+            { opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "translateY(0)" },
+        ], { duration: 160, easing: "cubic-bezier(.2,.8,.2,1)" });
     }
 
     private async refresh(): Promise<void> {
@@ -334,6 +345,38 @@ export class RelationsUI extends Component {
         }
     }
 
+    closePanel(): void {
+        if (!this.active) return;
+        const focused = this.root.contains(this.root.ownerDocument.activeElement);
+        this.animateExit = true;
+        this.instances.graphEventsDispatcher.removeChild(this);
+        if (focused) {
+            const toggle = this.instances.view.contentEl.querySelector<HTMLElement>(".eg-hover-branches-toggle");
+            const target = toggle?.offsetWidth ? toggle : this.instances.renderer.interactiveEl;
+            target.focus();
+        }
+    }
+
+    private reduceMotion(): boolean {
+        return this.instances.view.containerEl.win.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+
+    private removePanel(): void {
+        if (!this.root) return;
+        const style = this.instances.view.containerEl.win.getComputedStyle(this.root);
+        const start = { opacity: style.opacity, transform: style.transform };
+        this.entrance?.cancel();
+        this.entrance = undefined;
+        if (!this.animateExit || this.reduceMotion() || !this.root.isConnected) { this.root.remove(); return; }
+        this.root.classList.replace("eg-relations-panel", "eg-relations-exit");
+        this.root.setAttribute("aria-hidden", "true");
+        this.root.inert = true;
+        const animation = this.root.animate([start, { opacity: 0, transform: "translateY(3px)" }], { duration: 120, easing: "ease-out" });
+        const remove = () => { window.clearTimeout(timer); this.root.remove(); };
+        const timer = window.setTimeout(remove, 160);
+        void animation.finished.then(remove, remove);
+    }
+
     override onunload(): void {
         this.active = false;
         this.initialPreviewEvent = undefined;
@@ -341,7 +384,7 @@ export class RelationsUI extends Component {
         this.cancelFeedback?.();
         ++this.revision;
         this.clearPreviews();
-        this.root?.remove();
         this.releaseCenter?.();
+        this.removePanel();
     }
 }

@@ -73,6 +73,7 @@ export class BranchExplorer extends Component {
 
     override onload(): void {
         this.rootPath = this.currentRoot();
+        this.enableCanvasFocus();
         const controls = this.instances.view.contentEl.querySelector(".graph-controls") as HTMLElement;
         this.toggleEl = new ExtraButtonComponent(controls).setIcon("network")
             .setTooltip("悬浮关联预览：关闭").onClick(() => this.toggle()).extraSettingsEl;
@@ -104,6 +105,16 @@ export class BranchExplorer extends Component {
         this.registerEvent(app.metadataCache.on("resolved", () => this.refreshData()));
         this.registerEvent(app.vault.on("rename", () => this.reset()));
         this.registerEvent(app.vault.on("delete", () => this.refreshData()));
+    }
+
+    private enableCanvasFocus(): void {
+        const canvas = this.instances.renderer.interactiveEl;
+        const tabIndex = canvas.getAttribute("tabindex");
+        canvas.tabIndex = 0;
+        this.register(() => {
+            if (tabIndex === null) canvas.removeAttribute("tabindex");
+            else canvas.setAttribute("tabindex", tabIndex);
+        });
     }
 
     private bindHover(): void {
@@ -545,7 +556,8 @@ export class BranchExplorer extends Component {
         this.syncManualElements();
         if (!this.enabled) return;
         const progress = this.fadeDuration ? Math.min(1, (performance.now() - this.fadeStarted) / this.fadeDuration) : 1;
-        this.alpha = this.fadeFrom + (this.fadeTo - this.fadeFrom) * progress;
+        const eased = 1 - Math.pow(1 - progress, 3);
+        this.alpha = this.fadeFrom + (this.fadeTo - this.fadeFrom) * eased;
         this.preview.frame(this.alpha);
         if (progress < 1) this.instances.renderer.changed();
         else if (!this.alpha && !this.regions.size && !this.noteUnderPointer()) this.clearPreview();

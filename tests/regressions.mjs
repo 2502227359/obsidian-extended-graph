@@ -24,6 +24,7 @@ import { relationsDirect, relationsDirectSource, relationsDirectBranches, relati
 import { relationsPolishLabels, relationsPolishFeedback, relationsPolishRefresh } from './relations-polish.mjs';
 import { branchControlsPolish } from './branch-controls-polish.mjs';
 import { graphThemeLabels, graphPanelLayout } from './graph-appearance.mjs';
+import { graphKeyboard, graphPanelMotion, graphFadeContinuity } from './graph-motion.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -33,6 +34,9 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
+    '小图键盘焦点保持与节点激活一致': graphKeyboard,
+    '关联面板关闭动画即时释放状态并恢复焦点': graphPanelMotion,
+    '悬浮关联淡出反向进入连续且最终清理': graphFadeContinuity,
     '临时节点随主题更新颜色并区分同名长标题': graphThemeLabels,
     '关系面板宽窄布局避让并固定上下文': graphPanelLayout,
     '关系小图分页与保留按钮反馈真实状态': branchControlsPolish,
