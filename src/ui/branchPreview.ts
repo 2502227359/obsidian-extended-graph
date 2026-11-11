@@ -4,6 +4,7 @@ import type { BranchEdge, NeighborBranch } from "../relations/neighbors";
 import { PreviewLayer } from "../graph/previewLayer";
 import type { PreviewCallbacks } from "../graph/previewLayer";
 import { nodeLabel } from "./nodeLabels";
+import { pathParse } from "../helpers/path";
 
 export type { PreviewCallbacks, PreviewRegion } from "../graph/previewLayer";
 
@@ -32,6 +33,10 @@ export class BranchPreviewView extends Component {
     private retained = false;
     private alpha = 0;
     private placementKey = "";
+    private titleExpanded = false;
+    private titleWidth = 0;
+    private name?: HTMLDivElement;
+    private titleToggle?: HTMLButtonElement;
 
     constructor(private readonly instances: GraphInstances, private readonly callbacks: PreviewCallbacks) {
         super();
@@ -43,6 +48,7 @@ export class BranchPreviewView extends Component {
     }
 
     show(branch: NeighborBranch, trail: string[], trailEdges: BranchEdge[], includeSources: boolean, state: PreviewState): void {
+        if (this.branch?.anchor !== branch.anchor) this.titleExpanded = false;
         this.branch = branch;
         this.trail = [...trail];
         this.trailEdges = [...trailEdges];
@@ -69,6 +75,7 @@ export class BranchPreviewView extends Component {
             this.root.style.opacity = String(value);
             this.root.style.pointerEvents = value > 0.01 ? "auto" : "none";
             this.positionPanel();
+            this.updateTitleOverflow();
         }
     }
 
@@ -157,6 +164,7 @@ export class BranchPreviewView extends Component {
         header.createEl("strong", { text: "关联预览" });
         header.createDiv({ cls: "eg-branch-preview-count", text: this.countText() });
         this.renderTrail();
+        this.renderTitle();
         this.svg = this.createSvg();
         this.root.appendChild(this.svg);
         this.renderControls();
@@ -165,8 +173,9 @@ export class BranchPreviewView extends Component {
 
     private renderTrail(): void {
         if (!this.root || !this.branch) return;
-        const trailEl = this.root.createDiv({ cls: "eg-branch-preview-trail" });
-        const paths = this.trail.length ? this.trail : [this.branch.anchor];
+        const paths = this.trail.filter(path => path !== this.branch!.anchor);
+        const trailEl = this.root.createDiv({ cls: "eg-branch-preview-trail", attr: { "aria-label": "探索路径，点击返回祖先" } });
+        if (!paths.length) { trailEl.createSpan({ text: "探索起点" }); return; }
         paths.forEach((path, index) => {
             if (index > 0) trailEl.createSpan({ text: " › " });
             const button = trailEl.createEl("button", { cls: "eg-branch-preview-trail-path", text: this.displayName(path) });
@@ -179,6 +188,34 @@ export class BranchPreviewView extends Component {
                 this.callbacks.enter(path, event, "mini");
             });
         });
+    }
+
+    private renderTitle(): void {
+        if (!this.root || !this.branch) return;
+        const title = this.root.createDiv({ cls: "eg-branch-preview-title" });
+        this.name = title.createDiv({ cls: "eg-branch-preview-name", text: pathParse(this.branch.anchor).basename });
+        this.name.title = this.branch.anchor;
+        this.name.classList.toggle("is-expanded", this.titleExpanded);
+        this.titleToggle = title.createEl("button", {
+            cls: "eg-branch-preview-title-toggle", text: this.titleExpanded ? "收起全文" : "展开全文",
+            attr: { type: "button", "aria-expanded": String(this.titleExpanded) },
+        });
+        this.titleToggle.hidden = true;
+        this.titleWidth = 0;
+        this.titleToggle.addEventListener("click", () => {
+            this.titleExpanded = !this.titleExpanded;
+            this.name!.classList.toggle("is-expanded", this.titleExpanded);
+            this.titleToggle!.setAttribute("aria-expanded", String(this.titleExpanded));
+            this.titleToggle!.setText(this.titleExpanded ? "收起全文" : "展开全文");
+            this.titleWidth = 0;
+            this.instances.renderer.changed();
+        });
+    }
+
+    private updateTitleOverflow(): void {
+        if (!this.name || !this.titleToggle || this.name.clientWidth === this.titleWidth) return;
+        this.titleWidth = this.name.clientWidth;
+        this.titleToggle.hidden = !this.titleExpanded && this.name.scrollHeight <= this.name.clientHeight + 1;
     }
 
     private createSvg(): SVGSVGElement {
@@ -372,7 +409,12 @@ export class BranchPreviewView extends Component {
         const panel = this.instances.view.contentEl.querySelector<HTMLElement>(".eg-relations-panel");
         const blocker = panel?.getBoundingClientRect();
         const key = `${bounds.width}:${bounds.height}:${blocker?.left ?? 0}:${blocker?.width ?? 0}:${blocker?.height ?? 0}`;
-        if (this.placementKey === key) return;
+        if (this.placementKey === key) {
+            const top = Number.parseFloat(this.root.style.top) || 12;
+            const next = Math.min(top, Math.max(12, bounds.height - this.root.offsetHeight - 12));
+            if (next !== top) this.root.style.top = `${next}px`;
+            return;
+        }
         if (panel && blocker && blocker.left - bounds.left - 24 < 260) {
             this.stackPanels(panel, bounds);
             this.placementKey = key;

@@ -119,10 +119,13 @@
 
 .eg-branch-preview-trail {
     display: flex;
+    height: 28px;
     gap: 4px;
     align-items: center;
     overflow-x: auto;
     flex-shrink: 0;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
 }
 
 .eg-branch-preview-trail-path {
@@ -137,6 +140,40 @@
     border-radius: var(--eg-control-radius, 7px);
     box-shadow: none;
     transition: background-color 120ms ease-out;
+}
+
+.eg-branch-preview-title {
+    min-height: 4.35em;
+    flex-shrink: 0;
+}
+
+.eg-branch-preview-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    line-height: 1.45;
+    font-weight: 600;
+}
+
+.eg-branch-preview-name.is-expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+}
+
+.eg-branch-preview-title-toggle {
+    height: auto;
+    margin-top: 4px;
+    padding: 2px 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+}
+
+.eg-branch-preview-title-toggle[hidden] {
+    display: none;
 }
 
 .eg-branch-preview-svg {
@@ -393,7 +430,7 @@
     color: var(--text-muted);
 }
 
-.eg-graph-surface :is(.eg-local-depth button, .eg-hover-branches-toggle, .eg-branch-preview-action, .eg-branch-preview-trail-path, .eg-relations-close, .eg-relations-target, .eg-relations-source):focus-visible {
+.eg-graph-surface :is(.eg-local-depth button, .eg-hover-branches-toggle, .eg-branch-preview-action, .eg-branch-preview-trail-path, .eg-branch-preview-title-toggle, .eg-relations-close, .eg-relations-target, .eg-relations-source):focus-visible {
     outline: 2px solid var(--interactive-accent);
     outline-offset: 2px;
     border-radius: 4px;

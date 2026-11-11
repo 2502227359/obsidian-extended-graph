@@ -26,6 +26,7 @@ import { branchControlsPolish } from './branch-controls-polish.mjs';
 import { graphThemeLabels, graphPanelLayout } from './graph-appearance.mjs';
 import { graphKeyboard, graphPanelMotion, graphFadeContinuity } from './graph-motion.mjs';
 import { localDepthChanges, localDepthLayout, localDepthSessions, localDepthLimit, localDepthState } from './local-depth.mjs';
+import { previewLongTitle, previewSameNameTitle } from './preview-title.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -35,6 +36,8 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
+    '关联预览完整标题换行展开且保留祖先返回': previewLongTitle,
+    '关联预览标题保留编号并提供真实路径': previewSameNameTitle,
     '局部层数一键切换并同步核心深度': localDepthChanges,
     '局部层数选择器窄窗可见且支持键盘': localDepthLayout,
     '局部层数视图独立并保留手动分支': localDepthSessions,
