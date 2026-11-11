@@ -25,6 +25,7 @@ import { relationsPolishLabels, relationsPolishFeedback, relationsPolishRefresh 
 import { branchControlsPolish } from './branch-controls-polish.mjs';
 import { graphThemeLabels, graphPanelLayout } from './graph-appearance.mjs';
 import { graphKeyboard, graphPanelMotion, graphFadeContinuity } from './graph-motion.mjs';
+import { localDepthChanges, localDepthLayout, localDepthSessions, localDepthLimit, localDepthState } from './local-depth.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -34,6 +35,11 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
+    '局部层数一键切换并同步核心深度': localDepthChanges,
+    '局部层数选择器窄窗可见且支持键盘': localDepthLayout,
+    '局部层数视图独立并保留手动分支': localDepthSessions,
+    '局部层数超限时恢复实际层数和控件': localDepthLimit,
+    '局部层数跟随插件状态并恢复操作': localDepthState,
     '小图键盘焦点保持与节点激活一致': graphKeyboard,
     '关联面板关闭动画即时释放状态并恢复焦点': graphPanelMotion,
     '悬浮关联淡出反向进入连续且最终清理': graphFadeContinuity,

@@ -168,7 +168,7 @@ export async function branchesHover(plugin) {
         await waitFor(() => manager.allInstances.get(leaf.id)?.graphEventsDispatcher.inputsManager, '增强局部图谱应就绪');
         leaf.view.headerEl.style.display = 'none';
         const toggle = leaf.view.contentEl.querySelector('.eg-hover-branches-toggle');
-        assert.ok(toggle?.closest('.graph-controls'), '隐藏标题栏时，图谱右侧工具区仍应有独立开关');
+        assert.ok(toggle?.closest('.eg-local-tools'), '隐藏标题栏时，图谱右上角工具栏仍应有独立开关');
         const controls = leaf.view.contentEl.querySelector('.graph-controls');
         if (!controls.classList.contains('is-close')) controls.querySelector('.mod-close')?.click();
         assert.ok(toggle.getBoundingClientRect().width > 0, '收起设置后开关仍应可见');

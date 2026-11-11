@@ -16,9 +16,57 @@
     background: var(--interactive-accent);
 }
 
-.graph-controls.is-close .eg-hover-branches-toggle {
+.eg-local-tools {
+    position: absolute;
+    top: 12px;
+    right: 64px;
+    z-index: 10;
     display: flex;
-    margin-top: var(--size-4-2);
+    align-items: center;
+    gap: 8px;
+    padding: 3px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--eg-panel-radius, 12px);
+    background: var(--background-primary);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+}
+
+.eg-graph-surface:has(> .eg-local-tools) > .graph-controls:not(.is-close) {
+    top: 52px;
+    max-height: calc(100% - 64px);
+}
+
+.eg-local-depth {
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: var(--eg-control-radius, 7px);
+    background: var(--background-secondary);
+}
+
+.eg-local-depth button {
+    min-width: 36px;
+    height: 26px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    transition: color 120ms ease-out, background-color 120ms ease-out;
+}
+
+.eg-local-depth button:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.eg-local-depth button[aria-pressed="true"] {
+    color: var(--text-normal);
+    background: var(--background-primary);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+    font-weight: 600;
 }
 
 .eg-branch-preview {
@@ -345,7 +393,7 @@
     color: var(--text-muted);
 }
 
-.eg-graph-surface :is(.eg-hover-branches-toggle, .eg-branch-preview-action, .eg-branch-preview-trail-path, .eg-relations-close, .eg-relations-target, .eg-relations-source):focus-visible {
+.eg-graph-surface :is(.eg-local-depth button, .eg-hover-branches-toggle, .eg-branch-preview-action, .eg-branch-preview-trail-path, .eg-relations-close, .eg-relations-target, .eg-relations-source):focus-visible {
     outline: 2px solid var(--interactive-accent);
     outline-offset: 2px;
     border-radius: 4px;
@@ -362,7 +410,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .eg-graph-surface :is(.eg-hover-branches-toggle, .eg-branch-preview-action, .eg-branch-preview-trail-path, .eg-relations-target) {
+    .eg-graph-surface :is(.eg-local-depth button, .eg-hover-branches-toggle, .eg-branch-preview-action, .eg-branch-preview-trail-path, .eg-relations-target) {
         transition: none;
     }
 }

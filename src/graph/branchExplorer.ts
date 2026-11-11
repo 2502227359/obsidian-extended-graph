@@ -23,6 +23,7 @@ export class BranchExplorer extends Component {
     private index = ExtendedGraphInstances.plugin.neighborIndex;
     private preview: BranchPreviewView;
     private toggleEl: HTMLElement;
+    private tools: HTMLElement;
     private base?: GraphData;
     private rootPath = "";
     private branch?: NeighborBranch;
@@ -74,10 +75,10 @@ export class BranchExplorer extends Component {
     override onload(): void {
         this.rootPath = this.currentRoot();
         this.enableCanvasFocus();
-        const controls = this.instances.view.contentEl.querySelector(".graph-controls") as HTMLElement;
-        this.toggleEl = new ExtraButtonComponent(controls).setIcon("network")
+        this.tools = this.instances.view.contentEl.createDiv({ cls: "eg-local-tools" });
+        this.toggleEl = new ExtraButtonComponent(this.tools).setIcon("network")
             .setTooltip("悬浮关联预览：关闭").onClick(() => this.toggle()).extraSettingsEl;
-        this.toggleEl.addClasses(["graph-controls-button", "eg-hover-branches-toggle"]);
+        this.toggleEl.addClass("eg-hover-branches-toggle");
         this.toggleEl.setAttribute("role", "button");
         this.toggleEl.tabIndex = 0;
         this.registerDomEvent(this.toggleEl, "keydown", event => {
@@ -626,5 +627,6 @@ export class BranchExplorer extends Component {
         if (renderer.onNodeHover === this.hoverWrapper) renderer.onNodeHover = this.oldHover;
         if (renderer.onNodeUnhover === this.unhoverWrapper) renderer.onNodeUnhover = this.oldUnhover;
         this.toggleEl?.remove();
+        this.tools?.remove();
     }
 }

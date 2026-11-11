@@ -31,6 +31,7 @@ import {
 import { GraphFilter } from "./graphFilter";
 import { RelationsUI } from "../ui/relationsUI";
 import { BranchExplorer } from "./branchExplorer";
+import { LocalDepthControl } from "../ui/localDepthControl";
 
 interface LastFilteringAction {
     id: 'core-search' | 'core-tags' | 'core-attachments' | 'core-hide-unresolved' | 'core-orphans'
@@ -68,6 +69,7 @@ export class GraphEventsDispatcher extends Component {
     inputsManager: InputsManager;
     relationsUI?: RelationsUI;
     branches?: BranchExplorer;
+    private localDepth?: LocalDepthControl;
     reloadStateDuringInit: boolean;
 
     lastFilteringAction: LastFilteringAction | undefined;
@@ -115,6 +117,7 @@ export class GraphEventsDispatcher extends Component {
     private initializeUI(): void {
         if (this.instances.type === "localgraph") {
             this.branches = this.addChild(new BranchExplorer(this.instances));
+            this.localDepth = this.addChild(new LocalDepthControl(this.instances));
         }
         this.initializeLayersUI();
         this.initializeLegendUI();
@@ -735,6 +738,7 @@ export class GraphEventsDispatcher extends Component {
     }
 
     private updateData(data: GraphData): GraphData | undefined {
+        if (this.localDepth?.sync()) this.branches?.beforeGraphicsReset();
         this.relationsUI?.closeIfCenterChanged();
         data = this.branches?.mergeData(data) ?? data;
         // Filter out nodes
@@ -852,6 +856,7 @@ export class GraphEventsDispatcher extends Component {
     }
 
     private beforeRenderCallback() {
+        this.localDepth?.sync();
         this.branches?.frame();
         // If nodes need to be pinned because we just changed the state and new nodes were added
         if (this.instances.statePinnedNodes) {
@@ -917,10 +922,18 @@ export class GraphEventsDispatcher extends Component {
                 this.lastCheckboxContainerToggled?.dispatchEvent(new Event('click'));
                 this.lastFilteringAction.showOrphansNew = this.lastFilteringAction.showOrphansOld;
                 break;
-            case 'core-local-jumps':
-                this.lastCheckboxContainerToggled?.dispatchEvent(new Event('click'));
-                this.lastFilteringAction.localJumpsNew = this.lastFilteringAction.localJumpsOld;
+            case 'core-local-jumps': {
+                const action = this.lastFilteringAction;
+                const record = action.record;
+                action.localJumpsNew = action.localJumpsOld;
+                action.record = false;
+                try {
+                    this.instances.engine.setOptions({ localJumps: action.localJumpsOld });
+                } finally {
+                    action.record = record;
+                }
                 break;
+            }
             case 'core-local-forelinks':
                 this.lastCheckboxContainerToggled?.dispatchEvent(new Event('click'));
                 this.lastFilteringAction.localForelinksNew = this.lastFilteringAction.localForelinksOld;
