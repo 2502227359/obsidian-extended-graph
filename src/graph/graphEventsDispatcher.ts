@@ -162,6 +162,8 @@ export class GraphEventsDispatcher extends Component {
      * Called when the component is loaded.
      */
     onload(): void {
+        this.instances.view.contentEl.addClass("eg-graph-surface");
+        this.register(() => this.instances.view.contentEl.removeClass("eg-graph-surface"));
         this.loadCurrentStateEngineOptions();
         this.initGraphologyStats();
         this.createSetDataProxy();

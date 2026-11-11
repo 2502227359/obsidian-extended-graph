@@ -1,6 +1,8 @@
 import { Container, Graphics, Text } from "pixi.js";
 import type { NeighborBranch, BranchEdge } from "../relations/neighbors";
 import type { GraphInstances } from "../pluginInstances";
+import * as Color from "../colors/color-bits";
+import { nodeLabel } from "../ui/nodeLabels";
 
 export type PreviewRegion = "main" | "mini";
 
@@ -23,6 +25,7 @@ interface Point {
 interface PreviewNode {
     path: string;
     group: Container;
+    shape?: Graphics;
     label?: Text;
     ring?: Graphics;
     core: boolean;
@@ -31,6 +34,14 @@ interface PreviewNode {
 interface PreviewEdge {
     edge: BranchEdge;
     graphic: Graphics;
+}
+
+interface PreviewColors {
+    ghostFill: number;
+    ghostOutline: number;
+    edge: number;
+    ring: number;
+    text: number;
 }
 
 /** 主图中的临时分支绘制层，不参与核心节点、边和力学数据。 */
@@ -44,10 +55,12 @@ export class PreviewLayer {
     private visibleEdges: BranchEdge[] = [];
     private alpha = 0;
     private anchorOrigin: Point = { x: 0, y: 0 };
+    private colors: PreviewColors;
 
     constructor(private readonly instances: GraphInstances, private readonly callbacks: PreviewCallbacks) { }
 
     show(branch: NeighborBranch, trail: string[], trailEdges: BranchEdge[]): void {
+        this.refreshColors();
         const previous = new Map([...this.nodes].map(([path, node]) => [path, { x: node.group.x, y: node.group.y }]));
         const origin = this.corePosition(branch.anchor) ?? previous.get(branch.anchor) ?? { x: 0, y: 0 };
         this.clear();
@@ -61,6 +74,14 @@ export class PreviewLayer {
         this.updatePositions();
         this.alpha = 0;
         if (this.root) this.root.alpha = this.alpha;
+    }
+
+    onCSSChange(): void {
+        this.refreshColors();
+        if (!this.root) return;
+        for (const node of this.nodes.values()) this.refreshNodeColors(node);
+        for (const edge of this.edges) this.drawEdge(edge);
+        this.instances.renderer.changed();
     }
 
     frame(alpha: number): void {
@@ -119,10 +140,8 @@ export class PreviewLayer {
     private buildGhost(node: PreviewNode): void {
         const { group, path } = node;
         const shape = new Graphics();
-        shape.beginFill(0x7c3aed, 0.92);
-        shape.lineStyle({ width: 2, color: 0xffffff, alpha: 0.75 });
-        shape.drawCircle(0, 0, 18);
-        shape.endFill();
+        node.shape = shape;
+        this.drawGhost(shape);
         shape.eventMode = "static";
         shape.cursor = "pointer";
         node.label = this.createLabel(path);
@@ -163,16 +182,18 @@ export class PreviewLayer {
             node.group.position.set(position.x, position.y);
             if (node.ring) this.drawRing(node.ring, this.coreRadius(path));
         }
-        for (const item of this.edges) {
-            const source = this.positionOf(item.edge.source);
-            const target = this.positionOf(item.edge.target);
-            if (!source || !target) continue;
-            item.graphic.clear();
-            item.graphic.lineStyle({ width: 2, color: 0x9b87f5, alpha: 0.68 });
-            item.graphic.moveTo(source.x, source.y);
-            item.graphic.lineTo(target.x, target.y);
-            this.drawArrow(item.graphic, source, target);
-        }
+        for (const edge of this.edges) this.drawEdge(edge);
+    }
+
+    private drawEdge(item: PreviewEdge): void {
+        const source = this.positionOf(item.edge.source);
+        const target = this.positionOf(item.edge.target);
+        if (!source || !target) return;
+        item.graphic.clear();
+        item.graphic.lineStyle({ width: 2, color: this.colors.edge, alpha: 0.68 });
+        item.graphic.moveTo(source.x, source.y);
+        item.graphic.lineTo(target.x, target.y);
+        this.drawArrow(item.graphic, source, target);
     }
 
     private positionOf(path: string): Point | undefined {
@@ -264,12 +285,12 @@ export class PreviewLayer {
 
     private drawRing(ring: Graphics, radius: number): void {
         ring.clear();
-        ring.lineStyle({ width: 3, color: 0xc4b5fd, alpha: 0.9 });
+        ring.lineStyle({ width: 3, color: this.colors.ring, alpha: 0.9 });
         ring.drawCircle(0, 0, radius);
     }
 
     private createLabel(path: string): Text {
-        const label = new Text(this.displayName(path), { fontSize: 12, fill: 0xffffff });
+        const label = new Text(nodeLabel(path, this.visiblePaths, 14), { fontSize: 12, fill: this.colors.text });
         label.anchor.set(0.5, 0);
         label.position.set(0, 23);
         label.eventMode = "none";
@@ -320,9 +341,31 @@ export class PreviewLayer {
         });
     }
 
-    private displayName(path: string): string {
-        const name = (path.split(/[\\/]/).pop() ?? path).replace(/\.md$/, "");
-        return Array.from(name).length > 14 ? Array.from(name).slice(0, 14).join("") + "…" : name;
+    private drawGhost(shape: Graphics): void {
+        shape.clear();
+        shape.beginFill(this.colors.ghostFill, 0.92);
+        shape.lineStyle({ width: 2, color: this.colors.ghostOutline, alpha: 0.75 });
+        shape.drawCircle(0, 0, 18);
+        shape.endFill();
+    }
+
+    private refreshNodeColors(node: PreviewNode): void {
+        if (node.shape) this.drawGhost(node.shape);
+        if (node.label) node.label.style.fill = this.colors.text;
+        if (node.ring) this.drawRing(node.ring, this.coreRadius(node.path));
+    }
+
+    private refreshColors(): void {
+        const style = this.instances.view.containerEl.win.getComputedStyle(this.instances.renderer.interactiveEl);
+        const color = (variable: string) => Color.parseCSS(style.getPropertyValue(variable).trim()).rgb;
+        const accent = color("--interactive-accent");
+        this.colors = {
+            ghostFill: accent,
+            ghostOutline: color("--text-on-accent"),
+            edge: color("--text-accent"),
+            ring: color("--text-accent"),
+            text: color("--text-normal"),
+        };
     }
 
     private mouseEvent(event: unknown): MouseEvent {

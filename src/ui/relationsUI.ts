@@ -1,4 +1,4 @@
-import { Component, ExtraButtonComponent, HoverParent, Notice, TFile } from "obsidian";
+import { Component, ExtraButtonComponent, HoverParent, Notice, Platform, TFile } from "obsidian";
 import { LocalGraphView } from "obsidian-typings";
 import { ExtendedGraphInstances, GraphInstances } from "../pluginInstances";
 import { readRelations, RelationGroup, RelationOccurrence } from "../relations/relations";
@@ -17,6 +17,7 @@ export class RelationsUI extends Component {
     private body: HTMLDivElement;
     private count: HTMLDivElement;
     private status: HTMLDivElement;
+    private context: HTMLDivElement;
     private groups: RelationGroup[] = [];
     private revision = 0;
     private interaction = { preview: 0, direct: 0, navigate: 0 };
@@ -84,6 +85,7 @@ export class RelationsUI extends Component {
         new ExtraButtonComponent(header).setIcon("x").setTooltip("关闭关联面板")
             .onClick(() => this.instances.graphEventsDispatcher.removeChild(this))
             .extraSettingsEl.addClass("eg-relations-close");
+        this.context = this.root.createDiv({ cls: "eg-relations-context" });
         this.count = this.root.createDiv({ cls: "eg-relations-count" });
         this.status = this.root.createDiv({ cls: "eg-relations-status", attr: { role: "status", "aria-live": "polite" } });
         this.root.setAttribute("aria-busy", "false");
@@ -125,10 +127,12 @@ export class RelationsUI extends Component {
         this.root.dataset.center = this.centerPath;
         this.root.dataset.neighbor = this.neighborPath;
         this.body.empty();
+        this.context.empty();
         this.count.setText(`${this.groups.length} 个关联位置 · ${this.groups.reduce((sum, group) => sum + group.occurrences.length, 0)} 次引用`);
-        this.body.createDiv({ cls: "eg-relations-pair", text: `${this.fileName(this.centerPath)} ↔ ${this.fileName(this.neighborPath)}` });
-        if (this.directPreviewMode) this.body.createDiv({ cls: "eg-relations-direction", text: "点击关联位置切换浮窗；Ctrl/⌘＋点击在新标签页打开。" });
-        if (this.pinnedByPanel) this.body.createDiv({ cls: "eg-relations-direction", text: "查看关联期间固定图谱中心，关闭面板后恢复。" });
+        const pair = this.context.createDiv({ cls: "eg-relations-pair", text: `${this.fileName(this.centerPath)} ↔ ${this.fileName(this.neighborPath)}` });
+        pair.title = `${this.centerPath} ↔ ${this.neighborPath}`;
+        if (this.directPreviewMode) this.context.createDiv({ cls: "eg-relations-hint", text: `点击切换浮窗 · ${Platform.isMacOS ? "⌘" : "Ctrl"}＋点击打开标签页` });
+        if (this.pinnedByPanel) this.context.createDiv({ cls: "eg-relations-hint", text: "中心已固定 · 关闭后恢复" });
         if (!this.groups.length) this.body.createEl("p", { text: "这两个文件当前没有可解析的直接引用。" });
         this.groups.forEach((group, index) => this.renderGroup(group, index));
         this.body.querySelectorAll<HTMLDetailsElement>("details").forEach(item => { item.open = open.has(item.dataset.key); });
@@ -258,8 +262,9 @@ export class RelationsUI extends Component {
         anchor.setAttribute("aria-current", "location");
         const active = anchor.closest(".eg-relations-group");
         this.body.querySelectorAll(".eg-relations-group").forEach(card => card.classList.toggle("is-previewing", card === active));
-        const source = anchor.dataset.kind === "source" ? "引用原文" : "目标位置";
-        this.status.setText(`当前选择：${source} · ${anchor.textContent}`);
+        const label = anchor.dataset.kind === "source" ? anchor.textContent?.replace(/^打开/, "") : `目标位置 · ${anchor.textContent}`;
+        this.status.setText(`当前选择：${label}`);
+        this.status.title = this.status.textContent ?? "";
     }
 
     private directPreviewAnchor(anchor: HTMLAnchorElement): HTMLAnchorElement {

@@ -160,6 +160,7 @@ export class CSSBridge extends Component {
             }
             this.instances.renderer.changed();
         }
+        this.instances.graphEventsDispatcher.branches?.onCSSChange();
     }
 
     private computeStylingFromCSSBridge(): void {

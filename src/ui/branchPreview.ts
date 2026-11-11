@@ -3,6 +3,7 @@ import type { GraphInstances } from "../pluginInstances";
 import type { BranchEdge, NeighborBranch } from "../relations/neighbors";
 import { PreviewLayer } from "../graph/previewLayer";
 import type { PreviewCallbacks } from "../graph/previewLayer";
+import { nodeLabel } from "./nodeLabels";
 
 export type { PreviewCallbacks, PreviewRegion } from "../graph/previewLayer";
 
@@ -71,6 +72,10 @@ export class BranchPreviewView extends Component {
         }
     }
 
+    onCSSChange(): void {
+        this.layer.onCSSChange();
+    }
+
     hitNode(event: MouseEvent): { path: string; edge?: BranchEdge } | undefined {
         return this.layer.hitNode(event);
     }
@@ -88,6 +93,7 @@ export class BranchPreviewView extends Component {
     }
 
     clear(): void {
+        this.restoreRelationsHeight();
         this.layer.clear();
         this.branch = undefined;
         this.trail = [];
@@ -159,6 +165,7 @@ export class BranchPreviewView extends Component {
             const button = trailEl.createEl("button", { cls: "eg-branch-preview-trail-path", text: this.displayName(path) });
             button.type = "button";
             button.dataset.path = path;
+            button.title = path;
             button.dataset.trailIndex = String(index);
             button.addEventListener("click", event => {
                 event.preventDefault();
@@ -245,7 +252,14 @@ export class BranchPreviewView extends Component {
         circle.setAttribute("r", path === this.branch.anchor ? "15" : "12");
         group.appendChild(circle);
         const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        label.textContent = this.displayName(path);
+        const name = Array.from(this.displayName(path));
+        for (let offset = 0; offset < name.length; offset += 8) {
+            const line = document.createElementNS(label.namespaceURI, "tspan");
+            line.setAttribute("x", "0");
+            line.setAttribute("dy", offset ? "14" : "0");
+            line.textContent = name.slice(offset, offset + 8).join("");
+            label.appendChild(line);
+        }
         const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
         title.textContent = path;
         group.appendChild(title);
@@ -318,8 +332,7 @@ export class BranchPreviewView extends Component {
     }
 
     private displayName(path: string): string {
-        const name = (path.split(/[\\/]/).pop() ?? path).replace(/\.md$/, "");
-        return Array.from(name).length > 10 ? Array.from(name).slice(0, 10).join("") + "…" : name;
+        return nodeLabel(path, this.uniquePaths([...this.trail, ...(this.branch?.nodes ?? [])]), 14);
     }
 
     private positionPanel(): void {
@@ -327,10 +340,19 @@ export class BranchPreviewView extends Component {
         const bounds = this.instances.view.contentEl.getBoundingClientRect();
         const point = this.layer.screenPosition(this.branch.anchor);
         if (!point) return;
-        const blocker = this.instances.view.contentEl.querySelector(".eg-relations-panel")?.getBoundingClientRect();
-        const key = `${bounds.width}:${bounds.height}:${blocker?.left ?? 0}:${blocker?.width ?? 0}`;
+        const panel = this.instances.view.contentEl.querySelector<HTMLElement>(".eg-relations-panel");
+        const blocker = panel?.getBoundingClientRect();
+        const key = `${bounds.width}:${bounds.height}:${blocker?.left ?? 0}:${blocker?.width ?? 0}:${blocker?.height ?? 0}`;
         if (this.placementKey === key) return;
-        const width = Math.min(340, bounds.width - 24, blocker ? Math.max(220, blocker.left - bounds.left - 24) : 340);
+        if (panel && blocker && blocker.left - bounds.left - 24 < 260) {
+            this.stackPanels(panel, bounds);
+            this.placementKey = key;
+            return;
+        }
+        this.root.classList.remove("is-stacked");
+        this.root.style.removeProperty("max-height");
+        this.restoreRelationsHeight();
+        const width = Math.min(340, bounds.width - 24, blocker ? blocker.left - bounds.left - 24 : 340);
         this.root.style.width = `${Math.max(160, width)}px`;
         const height = Math.min(this.root.offsetHeight, bounds.height - 24);
         let left = point.x - bounds.left + 24;
@@ -339,5 +361,22 @@ export class BranchPreviewView extends Component {
         this.root.style.left = `${Math.max(12, Math.min(bounds.width - width - 12, left))}px`;
         this.root.style.top = `${Math.max(12, Math.min(bounds.height - height - 12, point.y - bounds.top - 40))}px`;
         this.placementKey = key;
+    }
+
+    private stackPanels(panel: HTMLElement, bounds: DOMRect): void {
+        if (!this.root) return;
+        const available = Math.max(120, bounds.height - 76);
+        const height = Math.min(360, available * 0.5);
+        this.root.classList.add("is-stacked");
+        panel.style.maxHeight = `${available - height - 12}px`;
+        const width = Math.min(420, Math.max(0, bounds.width - 24));
+        this.root.style.width = `${width}px`;
+        this.root.style.maxHeight = `${height}px`;
+        this.root.style.left = `${Math.max(12, bounds.width - width - 12)}px`;
+        this.root.style.top = `${panel.getBoundingClientRect().bottom - bounds.top + 12}px`;
+    }
+
+    private restoreRelationsHeight(): void {
+        this.instances.view.contentEl.querySelector<HTMLElement>(".eg-relations-panel")?.style.removeProperty("max-height");
     }
 }

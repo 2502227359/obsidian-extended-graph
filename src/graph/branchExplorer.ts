@@ -55,6 +55,7 @@ export class BranchExplorer extends Component {
     private blockedHover?: { path: string; region: Region };
     private pendingSync = false;
     private drag?: PreviewDrag;
+    private canvasTitle?: string | null;
 
     constructor(private instances: GraphInstances) {
         super();
@@ -180,6 +181,7 @@ export class BranchExplorer extends Component {
     }
 
     private onPointerMove(event: PointerEvent): void {
+        this.updatePointerTitle(event);
         this.pointerPoint = { x: event.clientX, y: event.clientY };
         if (this.drag) { this.moveDrag(event); return; }
         const blocked = this.blockedHover;
@@ -189,6 +191,22 @@ export class BranchExplorer extends Component {
         const mainPath = this.preview.hitNode(event)?.path ?? this.instances.renderer.getHighlightNode()?.id;
         this.blockedHover = undefined;
         if (path === blocked.path || mainPath === blocked.path) this.enter(blocked.path, event, blocked.region);
+    }
+
+    private updatePointerTitle(event: PointerEvent): void {
+        const canvas = this.instances.renderer.interactiveEl;
+        const path = event.target === canvas ? this.preview.hitNode(event)?.path : undefined;
+        if (!path) { this.restorePointerTitle(); return; }
+        if (this.canvasTitle === undefined) this.canvasTitle = canvas.getAttribute("title");
+        canvas.title = path;
+    }
+
+    private restorePointerTitle(): void {
+        if (this.canvasTitle === undefined) return;
+        const canvas = this.instances.renderer.interactiveEl;
+        if (this.canvasTitle === null) canvas.removeAttribute("title");
+        else canvas.title = this.canvasTitle;
+        this.canvasTitle = undefined;
     }
 
     private explore(path: string): void {
@@ -311,6 +329,10 @@ export class BranchExplorer extends Component {
 
     getPreviewNodes(): string[] {
         return this.previewAnchor ? [...new Set([...this.trail, ...this.branch!.nodes])] : [];
+    }
+
+    onCSSChange(): void {
+        this.preview.onCSSChange();
     }
 
     keepPreview(): void {
@@ -565,6 +587,7 @@ export class BranchExplorer extends Component {
     }
 
     private clearPreview(): void {
+        this.restorePointerTitle();
         this.drag = undefined;
         window.clearTimeout(this.enterTimer);
         window.clearTimeout(this.leaveTimer);

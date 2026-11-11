@@ -23,6 +23,7 @@ import { relationsCommands, relationsCommandActions, relationsCommandTargets } f
 import { relationsDirect, relationsDirectSource, relationsDirectBranches, relationsDirectRace } from './relations-direct.mjs';
 import { relationsPolishLabels, relationsPolishFeedback, relationsPolishRefresh } from './relations-polish.mjs';
 import { branchControlsPolish } from './branch-controls-polish.mjs';
+import { graphThemeLabels, graphPanelLayout } from './graph-appearance.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -32,6 +33,8 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
+    '临时节点随主题更新颜色并区分同名长标题': graphThemeLabels,
+    '关系面板宽窄布局避让并固定上下文': graphPanelLayout,
     '关系小图分页与保留按钮反馈真实状态': branchControlsPolish,
     '关联列表使用原文别名并保留标题与反向证据': relationsPolishLabels,
     '关联定位反馈与刷新失败不残留旧状态': relationsPolishFeedback,
