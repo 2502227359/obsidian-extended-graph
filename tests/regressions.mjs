@@ -27,7 +27,7 @@ import { graphThemeLabels, graphPanelLayout } from './graph-appearance.mjs';
 import { graphKeyboard, graphPanelMotion, graphFadeContinuity } from './graph-motion.mjs';
 import { localDepthChanges, localDepthLayout, localDepthSessions, localDepthLimit, localDepthState } from './local-depth.mjs';
 import { previewLongTitle, previewSameNameTitle } from './preview-title.mjs';
-import { previewDockLayout, previewFloatDrag, previewDockInteractions } from './preview-layout.mjs';
+import { previewFloatingLayout, previewFloatDrag, previewFloatingInteractions } from './preview-layout.mjs';
 
 function graphWithNodes(...ids) {
     const graph = new GraphologyGraph();
@@ -37,9 +37,9 @@ function graphWithNodes(...ids) {
 }
 
 const cases = {
-    '关联预览宽窗停靠同步画布并在关闭后还原': previewDockLayout,
+    '关联预览所有宽度浮动且保持完整画布': previewFloatingLayout,
     '关联预览窄窗拖动并保持递归位置': previewFloatDrag,
-    '关联预览停靠后节点命中拖动与Alt定位准确': previewDockInteractions,
+    '关联预览宽窗浮动时节点命中拖动与Alt定位准确': previewFloatingInteractions,
     '关联预览完整标题换行展开且保留祖先返回': previewLongTitle,
     '关联预览标题保留编号并提供真实路径': previewSameNameTitle,
     '局部层数一键切换并同步核心深度': localDepthChanges,

@@ -86,10 +86,6 @@ export class BranchPreviewView extends Component {
         this.layer.onCSSChange();
     }
 
-    setEnabled(enabled: boolean): void {
-        this.layoutManager.setEnabled(enabled);
-    }
-
     hitNode(event: MouseEvent): { path: string; edge?: BranchEdge } | undefined {
         return this.layer.hitNode(event);
     }
@@ -107,6 +103,7 @@ export class BranchPreviewView extends Component {
     }
 
     clear(): void {
+        this.layoutManager.cancelDrag();
         this.restoreRelationsHeight();
         this.layer.clear();
         this.branch = undefined;
@@ -413,10 +410,8 @@ export class BranchPreviewView extends Component {
 
     private positionPanel(): void {
         if (!this.root || !this.branch || this.root.hidden) return;
-        this.layoutManager.sync();
         const bounds = this.instances.view.contentEl.getBoundingClientRect();
         const panel = this.instances.view.contentEl.querySelector<HTMLElement>(".eg-relations-panel");
-        if (this.layoutManager.docked) { this.positionDocked(bounds, panel); return; }
         const blocker = panel?.getBoundingClientRect();
         const key = `${bounds.width}:${bounds.height}:${blocker?.left ?? 0}:${blocker?.width ?? 0}:${blocker?.height ?? 0}`;
         if (this.placementKey === key) {
@@ -443,24 +438,6 @@ export class BranchPreviewView extends Component {
         this.root.style.top = `${Math.max(12, Math.min(bounds.height - height - 12, 52))}px`;
         this.layoutManager.restorePosition();
         this.placementKey = key;
-    }
-
-    private positionDocked(bounds: DOMRect, panel?: HTMLElement | null): void {
-        if (!this.root) return;
-        this.placementKey = "";
-        this.root.style.width = "320px";
-        this.root.style.left = `${bounds.width - 332}px`;
-        this.root.classList.toggle("is-stacked", !!panel);
-        if (!panel) {
-            this.restoreRelationsHeight();
-            this.root.style.top = "52px";
-            this.root.style.maxHeight = `${Math.max(100, bounds.height - 64)}px`;
-            return;
-        }
-        const available = Math.max(120, bounds.height - 76), height = Math.min(360, available * 0.5);
-        panel.style.maxHeight = `${available - height - 12}px`;
-        this.root.style.maxHeight = `${height}px`;
-        this.root.style.top = `${panel.getBoundingClientRect().bottom - bounds.top + 12}px`;
     }
 
     private stackPanels(panel: HTMLElement, bounds: DOMRect): void {
